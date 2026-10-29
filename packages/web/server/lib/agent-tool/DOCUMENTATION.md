@@ -65,12 +65,21 @@ the user can want independently:
   for that session until the call returns, so the plugin registers a
   `session.prompt` hook: a prompt for the session, from any sender, aborts the
   waiting call, which returns `{ answered: false, reason: "chat" }`, and the
-  agent reads the message next.
+  agent reads the message next. A message sent before the page appeared
+  fired the hook too early; the server finds it in the inbox instead
+  (`render-page.js`).
+- `openchamber_image` — `image.generate`, images made or edited by the image
+  model the user chose in Settings (`../openchamber-control/generate-image.js`).
+  Off by default: enabled only while `agentImageToolEnabled` is `true`, and
+  the control service refuses the action when it is not. Never behind Code
+  Mode, like render: the chat draws the images in place of the call's row from
+  its stored result, which an `execute` script would hide.
 - `openchamber_secret` — `secret.request`, a card in the chat where the user
   types a secret the agent asked for (`label`, `reason`, optional
   `placeholder`). Every call waits, with the same plugin machinery as a page
   with `awaitAnswer` (call id, `timeout: false`, the `session.prompt` hook
-  that ends the wait when the user writes in the chat). The value never
+  that ends the wait when the user writes in the chat, and the inbox check
+  for a message sent before the card appeared). The value never
   travels through the call: the chat posts it to the server, which writes it
   to a private file, and the call returns only `{ status, file }`
   (`../openchamber-control/secret-request.js`). Direct, never behind Code

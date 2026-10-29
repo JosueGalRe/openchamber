@@ -55,6 +55,26 @@ oldest pending form and counts the rest in its header. The BTW sheet keeps
 the inline `FormCard` for its child session's forms; both render a field
 through `FormFieldControl`.
 
+On a phone the dock's body is clamped to the room above the keyboard
+(`useMobileAutocompleteMaxHeight`). iOS Safari raises the keyboard after the
+answer box takes focus, so the clamp shrinks the body under a box Safari has
+already revealed, and Safari does not reveal it again until the first
+keystroke. The dock therefore scrolls the focused field back into view
+whenever that height changes.
+
+### Why answer textareas measure content in one layout pass
+
+`FormFieldControl` resets the textarea height before measuring its content,
+adds the border height and applies the capped height directly. A height-driven
+React effect feeds the border-excluding `scrollHeight` back into a border-box
+height; deleting a long answer then causes repeated shrinking updates and a
+maximum-update-depth crash. Text changes trigger measurement; the measured
+height and overflow never trigger another React update.
+The field wrapper keeps its current minimum height during that measurement,
+then restores its original minimum. This prevents a scrolling form body from
+clamping its offset during the temporary collapse, while allowing genuine
+shrinking after deletion.
+
 `formCardState.ts` decides what both surfaces show and send, mirroring
 OpenCode's `Form.validateAnswer`: fields are evaluated in declaration order,
 a `when` clause reads only the answers of active earlier fields (an
@@ -94,14 +114,26 @@ request and never drops the newest session first (session ids descend with
 time; the reducer trims by creation time).
 
 The composer's top rows render inside the box and inside the mobile pill, so
-the surface stays one shape. Top to bottom: worktree setup and a message
-waiting for its space (`ComposerStatusStrip`), the goal (`SessionGoalRow`), a
-running review loop (`AutoReviewStrip`), background commands, a staged revert
+the surface stays one shape. Top to bottom: worktree setup, the session still
+being created from a draft's first message, and a message waiting for its
+space (`ComposerStatusStrip`; the creating line yields to the worktree line,
+so one wait shows one line, and appears only once the creation has taken
+300 ms, `useShownAfter`, so a fast server never flashes it), the goal (`SessionGoalRow`), a
+review loop and, once it ends, its result until dismissed, a dispute unfolding in place (`AutoReviewStrip`), the pull request the agent waits on with Stop watching (`PullRequestWatchStrip`), background commands, a staged revert
 (`RevertedMessagesStrip`), the queue (`QueuedMessagesStrip`),
 the "looks done" hint or the review offer, the suggestion
 (`SessionSuggestionChip`). BTW hides all of them. A pending form, a nonempty
 queue, composer content and a new-session draft hide the suggestion; a
 new-session draft also hides the queue.
+
+While a session's first send is pending (`pendingDraftSends` in
+`session-ui-store`, from Enter in the draft until the request that starts the
+turn has left), the composer keeps what is typed and sends nothing: Send is
+disabled, Stop is not offered, Enter and the pill's arrow do nothing, and
+nothing is queued. A first send that fails restores its text under the
+identity `DraftSendError` names: the created session's composer, or the
+reopened draft's, with the text typed meanwhile kept above the sent text
+(*A draft's first send* in `sync/DOCUMENTATION.md`).
 
 `RevertedMessagesStrip` lists the user messages a staged revert hides (see
 "Committing a revert" in `sync/DOCUMENTATION.md`). Its one action is Restore,
@@ -388,7 +420,12 @@ copy.
   holds commands only. Emoji open on a typed `:` plus two letters of a name
   after whitespace (`matchEmojiTrigger` in `lib/emoji/shortcodes.ts`), never on
   a paste, so `12:30`, `http://` and `:)` stay text; choosing one writes the
-  emoji itself, so the agent gets the character, not a shortcode. Only typing and pasting open a picker: text the app sets
+  emoji itself, so the agent gets the character, not a shortcode. A space
+  ends an `@` query, because paths and agent names hold none, except while
+  the whole query still matches a session title (`mentionContinuesPastSpace`,
+  `hasSessionMention`); the picker then lists sessions alone and closes on the
+  first word no title holds, so `@release notes are done` turns back into
+  prose. Only typing and pasting open a picker: text the app sets
   through the editor's `value` prop (a restored draft, a git conflict prompt)
   arrives with `ComposerChange.fromValueProp` and closes any open picker.
 - `tokenize.ts` — one pass producing every highlight range. Adding a construct
@@ -424,6 +461,15 @@ chip the same way; a token whose last character was just typed stays text
 until typing moves on, so a name is never chipped halfway. Commands keep
 their color only.
 
+The `#` snippet picker (`chat/SnippetAutocomplete.tsx`) also creates
+snippets. A typed name no snippet answers to offers "Create #name" and, in the
+main composer, "Save draft as #name" with the draft minus the token being
+typed; once saved, that token leaves the draft. Every create row opens the
+quick dialog (`components/snippets/SnippetQuickCreateDialog.tsx`, mounted once
+per app shell) and never writes on its own, so Enter on `fix #42` cannot make
+a snippet. The same dialog backs "Save as snippet" on a user message and on a
+text selection.
+
 Desktop comment fields in ordinary page DOM (chat quote comments, editing a
 pending comment above the composer) are `components/comments/CommentTextEditor`:
 this editor with comment keys (Enter submits, Escape cancels, both after an IME
@@ -441,6 +487,33 @@ The composer disables CodeMirror EditContext through `ComposerEditorView`:
 on Android Chrome with Gboard (Thai input, #3514) the EditContext path moved
 the caret into the middle of the draft and reinserted fragments. Generic
 editors (Files, Plan, Skills) keep the base `EditorView` and its EditContext.
+
+On iOS, a keyboard that cleans up dictation (WeChat, #5746) deletes its first
+transcript and writes the cleaned text in batches: it inserts a paragraph `DIV`
+and keeps writing into that same `DIV`. Stock `@codemirror/view` reads the
+paragraph at once and replaces the `DIV` with its own line, so everything the
+keyboard writes after the first paragraph break lands in a detached node and
+never reaches the draft. A temporary Bun patch
+(`bun-patches/@codemirror%2Fview@6.43.15.patch`) reads such a paragraph one
+frame later, with the rest of its batch, and reads it early instead of dropping
+it when the editor updates, takes focus or reads its layout within that
+frame. It applies to every CodeMirror view on iOS, not only the composer. When
+bumping `@codemirror/view`,
+carry the patch over and rerun `editor/__tests__/iosNativeParagraph.test.ts`;
+remove it once a CodeMirror release fixes this. The upstream report is
+https://code.haverbeke.berlin/codemirror/dev/issues/1780; CodeMirror's GitHub
+repositories are an archived mirror.
+
+### Why patch CodeMirror and not work around it in the composer
+
+The paragraph is replaced inside CodeMirror's DOM observer before any
+transaction exists, and any view update in the waiting frame discards the
+observer's unread records. Neither step is reachable through the public API:
+two app-side attempts in #5739 (keeping the latest default transaction, then
+deferring through `beforeinput` and `inputHandler`) each lost text in their own
+checks, because CodeMirror's measure cycle and update path reset the DOM under
+them. The patch is the smallest change at the place the text is lost, and it
+goes away when CodeMirror ships the fix.
 
 The document is not, however, the string it was given: CodeMirror normalizes
 line endings, so a `\r\n` pair becomes one break and the document ends up
@@ -653,7 +726,13 @@ and the send path reading the same grammar.
   in the project or worktree picker always applies and clears it, because a
   project without git never lists a branch and its pin never clears by itself.
   Re-picking what a pinned draft already shows changes nothing, so one click
-  cannot drop an unlisted space or worktree directory. Only a worktree still being created (`pendingWorktreeRequestId`,
+  cannot drop an unlisted space or worktree directory. The project's isolated
+  spaces are listed in a section of their own by name (`spaceBranchOptions`),
+  and a space's directory keeps its pin: picked from the list it is pinned at
+  once, and being listed never clears it, because it exists inside the space
+  only and the host's directory probe at send would call it missing and start
+  the chat in the project. The session store backs this up: a draft opened in
+  a space's directory starts pinned, and the probe never runs for one. Only a worktree still being created (`pendingWorktreeRequestId`,
   `bootstrapPendingDirectory`) keeps both pickers inert. The hook also owns the
   advisory dirty state for the selected directory, clearing it as soon as the
   target changes so a warning never names a previous branch. It re-reads the
@@ -704,7 +783,19 @@ info mark on every row read as noise. `ui/useAutocompleteSelectionScroll.ts`
 keeps the keyboard's selection in view.
 
 `../AutocompleteRows.test.tsx` mounts the command and skill pickers and covers
-the row's parts and the absent popup on selection.
+the row's parts, the absent popup on selection, and the list height below.
+
+### Why a list placed at the caret skips the phone's height clamp
+
+`useMobileAutocompleteMaxHeight` measures from the list's bottom edge, which
+holds still only while the list hangs above its anchor. The caret placement
+(`useAutocompletePosition`) already sizes the list against the same chat-area
+and keyboard limits, and a list it puts below the line, as it does once the
+phone's keyboard pushes the composer up, grows downward: every clamp moved the
+edge the next clamp measured, and the chat crashed with "Maximum update depth
+exceeded" (#5687). So each picker clamps only while its style carries no
+max-height: on the first frame before the placement is measured, and for
+callers that anchor the list themselves, like the scheduled task editor.
 
 ## Other sessions as context
 

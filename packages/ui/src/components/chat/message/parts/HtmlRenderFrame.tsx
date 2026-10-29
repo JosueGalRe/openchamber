@@ -1,10 +1,7 @@
 import React from 'react';
 
-import { isCapacitorMobileApp } from '@/apps/mobileNativeChrome';
-import { Icon } from '@/components/icon/Icon';
-import type { IconName } from '@/components/icon/icons';
 import { toast } from '@/components/ui';
-import { Button } from '@/components/ui/button';
+import { ToolbarTooltipButton } from '@/components/ui/action-toolbar';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useThemeSystem } from '@/contexts/useThemeSystem';
 import { useFrameAnnotation } from '@/components/browser/useFrameAnnotation';
@@ -15,14 +12,13 @@ import { isVSCodeRuntime } from '@/lib/desktop';
 import { useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/stores/useUIStore';
-import { shareFileFromNativeApp } from '@/lib/nativeFileShare';
 import type { ToolPart } from '@/lib/opencode/model';
 import { renderedPage, type RenderedPageAsk } from '@/lib/opencode/tools';
 import { answerRenderedPage } from '@/lib/renderPageAnswer';
 import { openExternalUrl } from '@/lib/url';
 import type { ChatQuoteAnchor } from '@/lib/chatQuoteAnchor';
 import { useConfigStore } from '@/stores/useConfigStore';
-import { dispatchFrameScroll } from '@/components/chat/lib/scroll/timelineScrollIntent';
+import { dispatchFrameScroll, dispatchPageWaiting } from '@/components/chat/lib/scroll/timelineScrollIntent';
 import { useChatSurfaceMode } from '@/components/chat/useChatSurfaceMode';
 import { dispatchFrameSelection, frameRectInApp } from '../frameSelection';
 import {
@@ -54,6 +50,7 @@ import {
     type HtmlRenderTheme,
 } from './htmlRender';
 import { useRenderPageHtml } from './renderPageImages';
+import { saveFile } from './saveFile';
 
 const DEFAULT_SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
 const DEFAULT_MONO = 'ui-monospace, "SFMono-Regular", Menlo, monospace';
@@ -390,34 +387,6 @@ interface HtmlRenderFrameProps {
     ask: RenderedPageAsk;
 }
 
-/** A small quiet icon button in the row above a page, like the Files preview toolbar's. */
-function PageToolButton({ label, icon, pressed, onClick }: {
-    label: string;
-    icon: IconName;
-    /** Set for a toggle: it carries the selection fill while on. */
-    pressed?: boolean;
-    onClick: () => void;
-}) {
-    return (
-        <Button
-            variant="ghost"
-            size="sm"
-            aria-label={label}
-            title={label}
-            aria-pressed={pressed}
-            onClick={onClick}
-            className={cn(
-                'size-6 p-0',
-                pressed
-                    ? 'bg-[var(--interactive-selection)] text-[var(--interactive-selection-foreground)] hover:bg-[var(--interactive-selection)]'
-                    : 'text-muted-foreground hover:text-foreground',
-            )}
-        >
-            <Icon name={icon} className="size-4" />
-        </Button>
-    );
-}
-
 /**
  * A page an agent showed with `openchamber_render`, inline in the reply. The
  * frame takes the height the page reports, so the page scrolls with the chat;
@@ -476,18 +445,7 @@ function HtmlRenderFrame({ part, html, title, ask }: HtmlRenderFrameProps) {
         // same way outside the app.
         const file = new File([buildHtmlRenderDocument(pageHtml, theme)], fileName, { type: 'text/html' });
         try {
-            if (isCapacitorMobileApp()) {
-                await shareFileFromNativeApp(file);
-                return;
-            }
-            const url = URL.createObjectURL(file);
-            const link = document.createElement('a');
-            link.download = fileName;
-            link.href = url;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            await saveFile(file);
         } catch {
             toast.error(t('chat.htmlRender.downloadFailed'));
         }
@@ -518,11 +476,20 @@ function HtmlRenderFrame({ part, html, title, ask }: HtmlRenderFrameProps) {
             ? t('chat.htmlRender.waiting')
             : ask.kind === 'answered-in-chat'
                 ? t('chat.htmlRender.answeredInChat')
-                : ask.kind === 'unanswered' ? t('chat.htmlRender.unanswered') : null;
+                : ask.kind === 'chat-sent-earlier'
+                    ? t('chat.htmlRender.chatSentEarlier')
+                    : ask.kind === 'unanswered' ? t('chat.htmlRender.unanswered') : null;
     const waiting = ask.kind === 'waiting' && answeredSummary === undefined;
+    // The chat brings a page that waits for an answer into view, and again
+    // as its height arrives: an off-screen frame reports its size only once
+    // it is scrolled into view.
+    const blockRef = React.useRef<HTMLDivElement>(null);
+    React.useEffect(() => {
+        if (waiting) dispatchPageWaiting(blockRef.current);
+    }, [height, waiting]);
 
     return (
-        <div className="group/html-render my-2">
+        <div ref={blockRef} className="group/html-render my-2" data-waiting-page={waiting ? partId : undefined}>
         {isMobile ? null : (
             // A row of its own above the page: over the page the buttons
             // covered its own controls in the top corner. The row keeps its
@@ -533,16 +500,16 @@ function HtmlRenderFrame({ part, html, title, ask }: HtmlRenderFrameProps) {
                 annotation.isAnnotating && 'opacity-100',
             )}>
                 {canAnnotate ? (
-                    <PageToolButton
+                    <ToolbarTooltipButton
                         label={t('contextPanel.browser.annotate.toggle')}
                         icon="markup"
                         pressed={annotation.isAnnotating}
                         onClick={annotation.toggle}
                     />
                 ) : null}
-                <PageToolButton label={t('chat.htmlRender.fullscreen')} icon="fullscreen" onClick={() => setFullscreen(true)} />
+                <ToolbarTooltipButton label={t('chat.htmlRender.fullscreen')} icon="fullscreen" onClick={() => setFullscreen(true)} />
                 {canDownload ? (
-                    <PageToolButton label={t('chat.htmlRender.download')} icon="download" onClick={() => { void handleDownload(); }} />
+                    <ToolbarTooltipButton label={t('chat.htmlRender.download')} icon="download" onClick={() => { void handleDownload(); }} />
                 ) : null}
             </div>
         )}

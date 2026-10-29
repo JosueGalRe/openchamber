@@ -5,6 +5,8 @@ import { asNonEmptyString, isBoolean } from '../shared/guards.js';
 import {
   OPENCHAMBER_AGENT_TOOL_ACTION_DEFINITIONS,
   OPENCHAMBER_AGENT_TOOL_ACTIONS,
+  OPENCHAMBER_IMAGE_ACTION_DEFINITIONS,
+  OPENCHAMBER_IMAGE_ACTIONS,
   OPENCHAMBER_KNOWLEDGE_ACTION_DEFINITIONS,
   OPENCHAMBER_KNOWLEDGE_ACTIONS,
   OPENCHAMBER_MEMORY_ACTION_DEFINITIONS,
@@ -53,6 +55,7 @@ const ACTIONS = new Set([
   ...OPENCHAMBER_KNOWLEDGE_ACTIONS,
   ...OPENCHAMBER_NOTIFY_ACTIONS,
   ...OPENCHAMBER_RENDER_ACTIONS,
+  ...OPENCHAMBER_IMAGE_ACTIONS,
   ...OPENCHAMBER_SECRET_ACTIONS,
   ...OPENCHAMBER_WORKFLOW_ACTIONS,
   ...OPENCHAMBER_WORKFLOW_ANSWER_ACTIONS,
@@ -66,6 +69,7 @@ const AGENT_TOOL_ACTION_TITLES = Object.fromEntries(
     ...OPENCHAMBER_KNOWLEDGE_ACTION_DEFINITIONS,
     ...OPENCHAMBER_NOTIFY_ACTION_DEFINITIONS,
     ...OPENCHAMBER_RENDER_ACTION_DEFINITIONS,
+    ...OPENCHAMBER_IMAGE_ACTION_DEFINITIONS,
     ...OPENCHAMBER_SECRET_ACTION_DEFINITIONS,
     ...OPENCHAMBER_WORKFLOW_ACTION_DEFINITIONS,
     ...OPENCHAMBER_WORKFLOW_ANSWER_ACTION_DEFINITIONS,
@@ -178,13 +182,17 @@ const pickParameters = (names) => Object.fromEntries(
   Object.entries(ALL_PARAMETER_PROPERTIES).filter(([name]) => names.includes(name)),
 );
 
-const CONTROL_PARAMETER_PROPERTIES = pickParameters(
-  Object.keys(ALL_PARAMETER_PROPERTIES).filter((name) => (
-    !WEB_PARAMETER_NAMES.includes(name)
-    && !MEMORY_ONLY_PARAMETER_NAMES.includes(name)
-    && !SCHEDULE_ONLY_PARAMETER_NAMES.includes(name)
-  )),
-);
+const CONTROL_PARAMETER_PROPERTIES = {
+  ...pickParameters(
+    Object.keys(ALL_PARAMETER_PROPERTIES).filter((name) => (
+      !WEB_PARAMETER_NAMES.includes(name)
+      && !MEMORY_ONLY_PARAMETER_NAMES.includes(name)
+      && !SCHEDULE_ONLY_PARAMETER_NAMES.includes(name)
+    )),
+  ),
+  // The web tool's `url` is a page to load; here it names what pr.watch follows.
+  url: { type: 'string', description: 'pr.watch: the pull or merge request address' },
+};
 const SCHEDULE_PARAMETER_PROPERTIES = {
   ...pickParameters(SCHEDULE_PARAMETER_NAMES),
   ...SCHEDULE_PARAMETER_OVERRIDES,
@@ -216,6 +224,15 @@ const NOTIFY_PARAMETER_PROPERTIES = {
   title: { type: 'string', description: 'Up to 120 characters' },
   body: { type: 'string', description: 'Up to 500 characters' },
   showWhenFocused: { type: 'boolean', description: 'Show it while the user is in OpenChamber too, otherwise it shows only while they are away. Only for what cannot wait' },
+};
+
+const IMAGE_PARAMETER_PROPERTIES = {
+  prompt: { type: 'string', description: 'What to draw, or for images what to change in them. Up to 8000 characters' },
+  images: { type: 'array', items: { type: 'string' }, description: 'Paths of PNG, JPEG, GIF or WebP files to edit or to use as references, in order; at most 8' },
+  aspect: { type: 'string', description: 'width:height, such as 16:9. Default: the model\'s' },
+  resolution: { type: 'string', description: 'Size tier such as 1K, 2K or 4K. Default: the model\'s' },
+  count: { type: 'integer', description: 'How many images, 1 to 4. Default 1' },
+  path: { type: 'string', description: "Where to save, absolute or relative to the project; more images get -2, -3 before the extension. Default: OpenCode's temporary folder" },
 };
 
 // Where the agent saves a screenshot for a page, so it stays out of the
@@ -326,6 +343,10 @@ const RENDER_TOOL_DESCRIPTION = "Draw a finished HTML page inline in the chat, a
   + "The page is part of your reply and sits on the chat's background: leave html, body and the outermost element without a background, add no outer card, border or banner title, and set boxes apart by tone. Style with the theme variables listed under html. "
   + "Read html before writing a page and awaitAnswer before asking on one.";
 
+const IMAGE_TOOL_DESCRIPTION = "Generate or edit images with the image model the user chose in OpenChamber's settings; your own model stays. "
+  + "The call returns the saved file paths, and the chat shows the images to the user, so do not repeat them in your reply. Read a file to look at it. "
+  + "Without path the files go to OpenCode's temporary folder: move one into the project when it belongs there. Every call costs the user money: make what was asked, not extra variations.";
+
 const SECRET_TOOL_DESCRIPTION = "Ask the user for a secret (API key, token, password) on a private card in the chat, and wait for it. Never ask for a secret in the chat or tell the user to paste one there; call this instead. "
   + "A saved secret goes to a file only this user can read, deleted after 24 hours, and the call returns only its path. Read it inside the command that needs it (TOKEN=\"$(cat <file>)\" some-cli ...); never print, echo or log it, and never copy it into the project. "
   + "The call returns status declined when the user declines, or answered: false when they wrote in the chat instead.";
@@ -343,6 +364,7 @@ const BOOLEAN_PARAMETER_NAMES = [...new Set([
   KNOWLEDGE_PARAMETER_PROPERTIES,
   NOTIFY_PARAMETER_PROPERTIES,
   RENDER_PARAMETER_PROPERTIES,
+  IMAGE_PARAMETER_PROPERTIES,
   WORKFLOW_PARAMETER_PROPERTIES,
 ].flatMap((properties) => Object.entries(properties)
   .filter(([, schema]) => schema.type === 'boolean')
@@ -392,8 +414,9 @@ const createResult = ({ ok, action, data, error, exitCode }) => ({
 
 /**
  * A call that waits for the user's answer (render.page with awaitAnswer, and
- * every secret.request) holds its call open. A message the user writes in the chat meanwhile would
- * sit behind that call: OpenCode delivers it only after the call returns. So
+ * every secret.request) holds its call open. A message the user writes in the
+ * chat meanwhile would sit behind that call: OpenCode delivers it only after
+ * the call returns. So
  * the call registers itself under its session, and the plugin's prompt hook
  * (createPluginSource) aborts it the moment any prompt for that session
  * arrives, whichever way it was sent. The call then returns "answered in the
@@ -641,7 +664,7 @@ ${answers ? answerWaitSetup(answers.waitsWhen) : ''}
  */
 const OPENCODE_TOOLS_REPLACED_BY_CONTROL = ['opencode_worktree_create', 'opencode_models'];
 
-const createPluginSource = ({ includeControl, includeSchedule, includeWeb, includeMemory, includeKnowledge, includeNotify, includeRender, includeSecret, includeWorkflow, codeMode }) => {
+const createPluginSource = ({ includeControl, includeSchedule, includeWeb, includeMemory, includeKnowledge, includeNotify, includeRender, includeImage, includeSecret, includeWorkflow, codeMode }) => {
   const entries = [];
   if (includeControl) {
     entries.push(`    for (const id of ${JSON.stringify(OPENCODE_TOOLS_REPLACED_BY_CONTROL)}) tools.remove(id)
@@ -725,6 +748,17 @@ const createPluginSource = ({ includeControl, includeSchedule, includeWeb, inclu
       // this tool's own call, and the answer has to reach that call.
       codeMode: false,
       answers: { waitsWhen: 'true', closedInChatNote: SECRET_REQUEST_CLOSED_IN_CHAT_NOTE },
+    }));
+  }
+  if (includeImage) {
+    entries.push(createToolEntry({
+      name: 'openchamber_image',
+      description: IMAGE_TOOL_DESCRIPTION,
+      definitions: OPENCHAMBER_IMAGE_ACTION_DEFINITIONS,
+      parameters: IMAGE_PARAMETER_PROPERTIES,
+      // Never behind Code Mode, like render: the chat draws the images from
+      // this tool's own call, which an execute script would hide.
+      codeMode: false,
     }));
   }
   if (includeWorkflow) {
@@ -819,13 +853,13 @@ export const createAgentToolRuntime = (dependencies) => {
    * change while it runs, so the source on disk always matches the settings —
    * the running OpenCode reloads the directory it already has configured.
    */
-  const materializePlugin = async ({ includeControl = true, includeSchedule = false, includeWeb = true, includeMemory = true, includeKnowledge = false, includeNotify = false, includeRender = false, includeSecret = false, includeWorkflow = false, codeMode = false } = {}) => {
-    if (!includeControl && !includeSchedule && !includeWeb && !includeMemory && !includeKnowledge && !includeNotify && !includeRender && !includeSecret && !includeWorkflow) {
+  const materializePlugin = async ({ includeControl = true, includeSchedule = false, includeWeb = true, includeMemory = true, includeKnowledge = false, includeNotify = false, includeRender = false, includeImage = false, includeSecret = false, includeWorkflow = false, codeMode = false } = {}) => {
+    if (!includeControl && !includeSchedule && !includeWeb && !includeMemory && !includeKnowledge && !includeNotify && !includeRender && !includeImage && !includeSecret && !includeWorkflow) {
       throw new Error('At least one OpenChamber managed tool must be enabled to inject the plugin');
     }
     await fsPromises.mkdir(pluginDirectory, { recursive: true });
     await fsPromises.writeFile(pluginManifestPath, PLUGIN_PACKAGE_JSON, { mode: 0o600 });
-    await fsPromises.writeFile(pluginPath, createPluginSource({ includeControl, includeSchedule, includeWeb, includeMemory, includeKnowledge, includeNotify, includeRender, includeSecret, includeWorkflow, codeMode }), { mode: 0o600 });
+    await fsPromises.writeFile(pluginPath, createPluginSource({ includeControl, includeSchedule, includeWeb, includeMemory, includeKnowledge, includeNotify, includeRender, includeImage, includeSecret, includeWorkflow, codeMode }), { mode: 0o600 });
     return pluginDirectory;
   };
 

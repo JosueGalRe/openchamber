@@ -148,10 +148,22 @@ describe('managed OpenCode config file', () => {
       includeKnowledge: false,
       includeNotify: false,
       includeRender: false,
+      includeImage: false,
       includeSecret: false,
       includeWorkflow: false,
       codeMode: false,
     });
+  });
+
+  it('injects the image tool only when it is switched on', async () => {
+    const { runtime, current, agentToolRuntime } = await createHarness({ settings: {} });
+
+    await runtime.buildManagedChildEnv();
+    expect(agentToolRuntime.materializePlugin).toHaveBeenLastCalledWith(expect.objectContaining({ includeImage: false }));
+
+    current.settings = { agentImageToolEnabled: true };
+    await runtime.refreshManagedConfigFile();
+    expect(agentToolRuntime.materializePlugin).toHaveBeenLastCalledWith(expect.objectContaining({ includeImage: true }));
   });
 
   it('injects the knowledge tool by default and leaves it out once switched off', async () => {
@@ -202,6 +214,7 @@ describe('managed OpenCode config file', () => {
       includeKnowledge: false,
       includeNotify: true,
       includeRender: false,
+      includeImage: false,
       includeSecret: false,
       includeWorkflow: false,
       codeMode: false,
@@ -223,6 +236,7 @@ describe('managed OpenCode config file', () => {
       includeKnowledge: true,
       includeNotify: false,
       includeRender: true,
+      includeImage: false,
       includeSecret: true,
       includeWorkflow: false,
       codeMode: true,

@@ -811,10 +811,10 @@ export function IntegrationsCatalogView(): React.ReactNode {
 
         <div className="mt-5 flex items-baseline gap-1.5 px-2 pb-1.5 typography-micro font-medium text-muted-foreground">
           {t('integrationsCatalog.filter.installed')}
-          <span className="text-muted-foreground/70">{installedEntries.length}</span>
+          <span className="text-muted-foreground">{installedEntries.length}</span>
         </div>
         {installedEntries.length === 0 ? (
-          <p className="px-2 typography-micro text-muted-foreground/80">{t('integrationsCatalog.rail.installedEmpty')}</p>
+          <p className="px-2 typography-micro text-muted-foreground">{t('integrationsCatalog.rail.installedEmpty')}</p>
         ) : installedEntries.map((entry) => {
           const selected = selectedId === entry.id;
           const status = statusOf(entry);
@@ -896,10 +896,15 @@ export function IntegrationsCatalogView(): React.ReactNode {
     );
   };
 
-  /** Where the installed MCP server stands, with the sign-in when it asks for one. */
-  const renderConnection = (entry: CatalogEntry): React.ReactNode => {
+  /**
+   * Where the installed MCP server stands, with the sign-in when it asks for
+   * one. A failed OAuth server offers it too: the service may have rejected
+   * the stored token, and only a fresh sign-in replaces it.
+   */
+  const renderConnection = (entry: CatalogEntry, mcp: CatalogMcpComponent): React.ReactNode => {
     const runtime = readMcpStatusName(mcpStatuses[entry.id]);
     const disabled = mcpServers.find((candidate) => candidate.name === entry.id)?.disabled === true;
+    const offersSignIn = !disabled && (runtime === 'needs_auth' || (runtime === 'failed' && mcp.auth === 'oauth'));
     const state: { label: string; tone: IntegrationCatalogStatusTone } = disabled
       ? { label: t('integrationsCatalog.status.disabled'), tone: 'neutral' }
       : runtime === 'connected'
@@ -921,13 +926,14 @@ export function IntegrationsCatalogView(): React.ReactNode {
               {state.label}
             </span>
           </div>
-          {runtime === 'needs_auth' && !disabled ? (
+          {offersSignIn ? (
             <div className="mt-4 border-t border-[var(--interactive-border)] pt-4">
-              <p className="mb-3 text-sm text-muted-foreground">{t('integrationsCatalog.oauth.waiting')}</p>
+              {runtime === 'needs_auth' ? <p className="mb-3 text-sm text-muted-foreground">{t('integrationsCatalog.oauth.waiting')}</p> : null}
               <McpOAuthSignIn
                 serverName={entry.id}
                 directory={currentDirectory}
-                autoStart={pendingSignInId === entry.id}
+                autoStart={runtime === 'needs_auth' && pendingSignInId === entry.id}
+                connectLabel={runtime === 'failed' ? t('settings.mcp.page.actions.signInAgain') : undefined}
                 onConnected={() => { void useMcpStore.getState().connect(entry.id, currentDirectory); }}
               />
             </div>
@@ -1070,7 +1076,7 @@ export function IntegrationsCatalogView(): React.ReactNode {
           <button type="button" onClick={() => showEntry(null)} className="rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             {t('integrationsCatalog.page.title')}
           </button>
-          <Icon name="arrow-right-s" className="size-4 text-muted-foreground/60" />
+          <Icon name="arrow-right-s" className="size-4 text-muted-foreground" />
           <span className="truncate text-foreground">{entry.name}</span>
         </nav>
 
@@ -1099,7 +1105,7 @@ export function IntegrationsCatalogView(): React.ReactNode {
 
         <div className="mt-10 flex flex-col gap-10">
           {mcp && !mcpInstalled ? renderSetup(entry, mcp) : null}
-          {mcpInstalled ? renderConnection(entry) : null}
+          {mcp && mcpInstalled ? renderConnection(entry, mcp) : null}
 
           <section className="flex flex-col gap-3">
             <SectionHeading title={t('integrationsCatalog.detail.about')} />

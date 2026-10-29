@@ -91,6 +91,14 @@ describe('secret.request', () => {
     expect(onWaitChange).not.toHaveBeenCalled();
   });
 
+  it('does not wait when the user wrote in the chat before the card appeared', async () => {
+    const { directory, onWaitChange } = await createHarness();
+    const requests = createSecretRequests({ isEnabled: async () => true, files: createSecretFiles({ directory }), onWaitChange, hasUnreadChat: async () => true });
+
+    await expect(requests.request(ask, call)).resolves.toMatchObject({ answer: { answered: false, reason: 'chat-sent-earlier' } });
+    expect(onWaitChange).not.toHaveBeenCalled();
+  });
+
   it('refuses while the tool is turned off', async () => {
     const { requests } = await createHarness({ enabled: false });
     await expect(requests.request(ask, call)).rejects.toMatchObject({ statusCode: 403 });

@@ -99,6 +99,9 @@ export const getToolIcon = (toolName: string, presentation?: GuestToolRule | nul
     if (tool === 'openchamber_render') {
         return <Icon name="bar-chart-box" className={iconClass} />;
     }
+    if (tool === 'openchamber_image') {
+        return <Icon name="image" className={iconClass} />;
+    }
     if (tool === 'openchamber_secret') {
         return <Icon name="shield-keyhole" className={iconClass} />;
     }

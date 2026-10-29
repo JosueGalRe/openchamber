@@ -213,7 +213,7 @@ const renderPageInputSchema = renderPageFields
 // awaitAnswer), as the plugin records it in the call's metadata.
 const pageAnswerSchema = z.union([
   z.object({ answered: z.literal(true), summary: z.string(), data: z.json().catch(null) }),
-  z.object({ answered: z.literal(false) }),
+  z.object({ answered: z.literal(false), reason: z.string().optional().catch(undefined) }),
 ])
 
 const openChamberResultSchema = z
@@ -348,6 +348,8 @@ export type RenderedPageAsk =
   | { kind: "waiting" }
   | { kind: "answered"; summary: string; data: JsonValue }
   | { kind: "answered-in-chat" }
+  /** The user had written in the chat before the page appeared, so it did not wait. */
+  | { kind: "chat-sent-earlier" }
   | { kind: "unanswered" }
 
 // A page sent without a title is named after its own <title>, else its first
@@ -394,7 +396,9 @@ export function renderedPage(
   if (result?.ok !== true) return null
   const answer = result.answer
   if (answer?.answered === true) return { html, title, ask: { kind: "answered", summary: answer.summary, data: answer.data } }
-  if (answer?.answered === false) return { html, title, ask: { kind: "answered-in-chat" } }
+  if (answer?.answered === false) {
+    return { html, title, ask: { kind: answer.reason === "chat-sent-earlier" ? "chat-sent-earlier" : "answered-in-chat" } }
+  }
   return { html, title, ask: { kind: "show" } }
 }
 
@@ -494,9 +498,10 @@ const MAX_TEXT_LENGTH = 120
 const OPENCHAMBER_RENDER_TOOL = "openchamber_render"
 const OPENCHAMBER_SECRET_TOOL = "openchamber_secret"
 const OPENCHAMBER_WORKFLOW_TOOL = "openchamber_workflow"
+const OPENCHAMBER_IMAGE_TOOL = "openchamber_image"
 
-/** The control, schedule, browser, memory, knowledge, notify, render, secret and workflow tools OpenChamber gives a session. */
-const OPENCHAMBER_TOOLS = new Set(["openchamber", "openchamber_schedule", "openchamber_web", "openchamber_memory", "openchamber_knowledge", "openchamber_notify", OPENCHAMBER_RENDER_TOOL, OPENCHAMBER_SECRET_TOOL, OPENCHAMBER_WORKFLOW_TOOL])
+/** The control, schedule, browser, memory, knowledge, notify, render, image, secret and workflow tools OpenChamber gives a session. */
+const OPENCHAMBER_TOOLS = new Set(["openchamber", "openchamber_schedule", "openchamber_web", "openchamber_memory", "openchamber_knowledge", "openchamber_notify", OPENCHAMBER_RENDER_TOOL, OPENCHAMBER_IMAGE_TOOL, OPENCHAMBER_SECRET_TOOL, OPENCHAMBER_WORKFLOW_TOOL])
 
 // The result envelope the agent tool returns as text (`agent-tool/runtime.js`).
 const proposedWorkflowResultSchema = z.object({
@@ -522,16 +527,38 @@ export function proposedWorkflowRunId(toolName: ToolName, state: ToolState): str
   return result.success ? result.data.data.runId : null
 }
 
+// The result envelope of a finished `image.generate` call (`openchamber-control/generate-image.js`).
+const generatedImagesResultSchema = z.object({
+  ok: z.literal(true),
+  action: z.literal("image.generate"),
+  data: z.object({ images: z.array(z.object({ path: z.string().min(1) })).min(1) }),
+})
+
+/** The files an `openchamber_image` call saved, in order; none for any other part. */
+export function generatedImagePaths(toolName: ToolName, state: ToolState): string[] {
+  if (toolName !== OPENCHAMBER_IMAGE_TOOL || state.status !== "completed") return []
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(state.output)
+  } catch {
+    return []
+  }
+  const result = generatedImagesResultSchema.safeParse(parsed)
+  return result.success ? result.data.data.images.map((image) => image.path) : []
+}
+
 /**
  * Whether the chat draws what a call showed instead of its tool row: a page
- * from `openchamber_render`, a secret card from `openchamber_secret`, or the
- * run a `workflow.run` call proposed. All ask something of the user, so all
- * are hoisted to the answer when Activity is collapsed.
+ * from `openchamber_render`, the run a `workflow.run` call proposed, the
+ * images `image.generate` made, or a secret card from `openchamber_secret`.
+ * The user is meant to see all of them, so they are hoisted to the answer when
+ * Activity is collapsed.
  */
 export const isShownInPlace = (toolName: ToolName, state: ToolState): boolean => (
   renderedPage(toolName, state) !== null
-  || requestedSecret(toolName, state) !== null
   || proposedWorkflowRunId(toolName, state) !== null
+  || generatedImagePaths(toolName, state).length > 0
+  || requestedSecret(toolName, state) !== null
 )
 
 const openChamberCallSchema = z

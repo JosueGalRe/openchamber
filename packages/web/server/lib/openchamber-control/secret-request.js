@@ -14,6 +14,7 @@ export const SECRET_FILE_LIFETIME_MS = 24 * 60 * 60 * 1000;
 
 const SAVED_NOTE = "The user saved the secret to file, which only this user can read. Read it inside the command that needs it, such as TOKEN=\"$(cat <file>)\" some-cli ...; never print, echo or log it, and never copy it into the project. The file is deleted 24 hours after it was saved.";
 const DECLINED_NOTE = "The user declined to give this secret. Continue without it or say what it blocks; ask again only if they want to.";
+const CHAT_SENT_EARLIER_NOTE = "The card did not wait: the user had already written in the chat before it appeared, and that message follows this result. Continue from that message; ask for the secret again only if it still fits.";
 
 /**
  * What the agent reads when the user wrote in the chat instead of answering
@@ -63,8 +64,12 @@ export const createSecretFiles = ({ directory, now = Date.now, fsPromises = fs }
  * it does for a page, with the same pending list, events and notification.
  * Its answer carries `saved` or `declined` as the summary and the file path
  * as the data; the value itself never reaches the call.
+ *
+ * Like a page, the card does not wait when `hasUnreadChat` finds a message
+ * the user sent before it appeared: OpenCode delivers that message only once
+ * this call returns, so waiting would hold it back.
  */
-export const createSecretRequests = ({ isEnabled, files, onWaitChange }) => {
+export const createSecretRequests = ({ isEnabled, files, onWaitChange, hasUnreadChat = async () => false }) => {
   const waits = createPageAnswers({ onWaitChange });
 
   const request = async (input, { sessionId, callId, directory, signal } = {}) => {
@@ -92,6 +97,9 @@ export const createSecretRequests = ({ isEnabled, files, onWaitChange }) => {
     // A plugin generated before secrets could wait sends no call id.
     if (!sessionId || !callId) {
       throw new OpenChamberControlError('This connection cannot wait for a secret', 400);
+    }
+    if (await hasUnreadChat(sessionId)) {
+      return { answer: { answered: false, reason: 'chat-sent-earlier' }, note: CHAT_SENT_EARLIER_NOTE };
     }
     const answer = await waits.wait({ sessionId, callId, title: label, directory, signal });
     const file = isString(answer.data?.file) ? answer.data.file : null;

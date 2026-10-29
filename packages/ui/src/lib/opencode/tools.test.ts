@@ -20,7 +20,7 @@ import {
   subagentSessionId,
   toolDescription,
   toolFileDiffs,
-  toolInputPath, isShownInPlace, proposedWorkflowRunId } from "./tools"
+  toolInputPath, isShownInPlace, proposedWorkflowRunId, generatedImagePaths } from "./tools"
 import type { Metadata, ToolInput, ToolState } from "./model"
 
 describe("tool identity", () => {
@@ -275,6 +275,8 @@ describe("renderedPage", () => {
       .toEqual({ kind: "answered", summary: "Layout B", data: { layout: "b" } })
     expect(renderedPage("openchamber_render", completed(input, { openchamber: { ok: true, answer: { answered: false, reason: "chat" } } }))?.ask)
       .toEqual({ kind: "answered-in-chat" })
+    expect(renderedPage("openchamber_render", completed(input, { openchamber: { ok: true, answer: { answered: false, reason: "chat-sent-earlier" } } }))?.ask)
+      .toEqual({ kind: "chat-sent-earlier" })
     const stopped: ToolState = { status: "error", input, error: "aborted", time: { start: 1, end: 2 } }
     expect(renderedPage("openchamber_render", stopped)?.ask).toEqual({ kind: "unanswered" })
   })
@@ -348,3 +350,20 @@ describe("proposedWorkflowRunId", () => {
   })
 })
 
+describe("generatedImagePaths", () => {
+  const completed = (output: string, tool = "openchamber_image"): [string, ToolState] => [tool, { status: "completed", input: { prompt: "a cat" }, output, time: { start: 1, end: 2 } }]
+  const envelope = (ok: boolean, paths: string[]) => JSON.stringify({ schemaVersion: 1, ok, action: "image.generate", data: { images: paths.map((path) => ({ path, mime: "image/png" })) } })
+
+  test("reads the files an image.generate call saved, which the chat draws in place of the row", () => {
+    const call = completed(envelope(true, ["/tmp/opencode/generated-images/a.png", "/repo/b.png"]))
+    expect(generatedImagePaths(...call)).toEqual(["/tmp/opencode/generated-images/a.png", "/repo/b.png"])
+    expect(isShownInPlace(...call)).toBe(true)
+  })
+
+  test("leaves refusals, running calls and other tools to their rows", () => {
+    expect(generatedImagePaths(...completed(envelope(false, ["/tmp/a.png"])))).toEqual([])
+    expect(generatedImagePaths(...completed(envelope(true, [])))).toEqual([])
+    expect(generatedImagePaths(...completed(envelope(true, ["/tmp/a.png"]), "openchamber_render"))).toEqual([])
+    expect(generatedImagePaths("openchamber_image", { status: "running", input: {}, time: { start: 1 } })).toEqual([])
+  })
+})
