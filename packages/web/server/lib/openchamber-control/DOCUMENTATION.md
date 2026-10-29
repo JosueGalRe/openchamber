@@ -103,6 +103,10 @@ other.
   `<data-dir>/secrets/<random>` (file `0600` created with `wx`, directory
   `0700`) and only then settles the wait with the path; when the call
   stopped waiting meanwhile, the file is removed and the answer is a `404`.
+  A write that fails partway removes its file, and so does an answer that
+  settles the wait just as the call is aborted. Like a page, the card does
+  not wait when `hasUnreadChat` finds a message the user sent before it
+  appeared; the call answers `{ answered: false, reason: 'chat-sent-earlier' }`.
   The value never enters the tool call, its result, OpenCode's store or the
   agent's context; the agent reads the file inside its own command, so the
   card says the agent's commands can read it. `createSecretFiles().sweep()`

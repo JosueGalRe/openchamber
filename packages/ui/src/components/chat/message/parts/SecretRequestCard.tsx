@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { dispatchPageWaiting } from '@/components/chat/lib/scroll/timelineScrollIntent';
 import { Icon } from '@/components/icon/Icon';
 import { toast } from '@/components/ui';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { useI18n } from '@/lib/i18n';
 import type { ToolPart } from '@/lib/opencode/model';
 import type { RequestedSecret, SecretRequestState } from '@/lib/opencode/tools';
 import { answerSecretRequest } from '@/lib/secretRequestAnswer';
+import { useSessionDirectory } from '@/sync/sync-context';
 
 /**
  * The card an agent asks for a secret on (`openchamber_secret`). The value
@@ -17,6 +19,7 @@ import { answerSecretRequest } from '@/lib/secretRequestAnswer';
  */
 export function SecretRequestCard({ part, request }: { part: ToolPart; request: RequestedSecret }) {
     const { t } = useI18n();
+    const directory = useSessionDirectory(part.sessionID);
     const [value, setValue] = React.useState('');
     const [busy, setBusy] = React.useState(false);
     // What this client sent, shown until the call completes with the status
@@ -27,7 +30,7 @@ export function SecretRequestCard({ part, request }: { part: ToolPart; request: 
     const send = React.useCallback(async (answer: { value: string } | { declined: true }, outcome: SecretRequestState) => {
         setBusy(true);
         try {
-            await answerSecretRequest({ sessionId: part.sessionID, callId: part.callID, ...answer });
+            await answerSecretRequest({ sessionId: part.sessionID, callId: part.callID, ...answer }, directory);
             setValue('');
             setSent(outcome);
         } catch (error) {
@@ -36,9 +39,16 @@ export function SecretRequestCard({ part, request }: { part: ToolPart; request: 
         } finally {
             setBusy(false);
         }
-    }, [part.callID, part.sessionID, t]);
+    }, [directory, part.callID, part.sessionID, t]);
 
-    if (state !== 'waiting') {
+    // The chat brings a card that waits into view, like a page that waits.
+    const waiting = state === 'waiting';
+    const blockRef = React.useRef<HTMLDivElement>(null);
+    React.useEffect(() => {
+        if (waiting) dispatchPageWaiting(blockRef.current);
+    }, [waiting]);
+
+    if (!waiting) {
         const line = state === 'saved'
             ? t('chat.secretRequest.saved', { label: request.label })
             : state === 'declined'
@@ -53,7 +63,7 @@ export function SecretRequestCard({ part, request }: { part: ToolPart; request: 
     }
 
     return (
-        <div className="oc-tile my-2 rounded-xl p-4" data-secret-request-status="waiting">
+        <div ref={blockRef} className="oc-tile my-2 rounded-xl p-4" data-secret-request-status="waiting" data-waiting-page={part.id}>
             <div className="typography-ui-label font-semibold text-foreground">{request.label}</div>
             <p className="mt-1 whitespace-pre-wrap break-words typography-markdown text-muted-foreground">{request.reason}</p>
             <form

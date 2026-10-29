@@ -106,6 +106,21 @@ describe('secret.request', () => {
 });
 
 describe('secret files', () => {
+  it('removes a file whose write failed partway', async () => {
+    const { directory } = await createHarness();
+    const failing = {
+      ...fs,
+      writeFile: async (file, value, options) => {
+        await fs.writeFile(file, String(value).slice(0, 3), options);
+        throw new Error('ENOSPC');
+      },
+    };
+    const files = createSecretFiles({ directory, fsPromises: failing });
+
+    await expect(files.write('secret-value')).rejects.toThrow('ENOSPC');
+    expect(await fs.readdir(directory)).toEqual([]);
+  });
+
   it('sweeps files older than 24 hours and keeps the rest', async () => {
     let now = Date.now();
     const { files } = await createHarness({ now: () => now });

@@ -8,7 +8,7 @@ import { createPageAnswers } from './render-page.js';
 export const SECRET_REQUEST_MAX_LABEL_LENGTH = 120;
 export const SECRET_REQUEST_MAX_REASON_LENGTH = 1000;
 export const SECRET_REQUEST_MAX_PLACEHOLDER_LENGTH = 80;
-// A token, a key or a password; a PEM private key fits too.
+// A token, a key or a password: the card's field is one line.
 const SECRET_MAX_VALUE_LENGTH = 16_000;
 export const SECRET_FILE_LIFETIME_MS = 24 * 60 * 60 * 1000;
 
@@ -38,7 +38,13 @@ export const createSecretFiles = ({ directory, now = Date.now, fsPromises = fs }
     // `mkdir` applies the mode only to a directory it creates.
     await fsPromises.chmod(directory, 0o700);
     const file = path.join(directory, crypto.randomBytes(16).toString('hex'));
-    await fsPromises.writeFile(file, value, { mode: 0o600, flag: 'wx' });
+    try {
+      await fsPromises.writeFile(file, value, { mode: 0o600, flag: 'wx' });
+    } catch (error) {
+      // `wx` creates the file before writing, so a failed write can leave part of the secret.
+      await fsPromises.rm(file, { force: true }).catch(() => {});
+      throw error;
+    }
     return file;
   };
 
@@ -103,6 +109,12 @@ export const createSecretRequests = ({ isEnabled, files, onWaitChange, hasUnread
     }
     const answer = await waits.wait({ sessionId, callId, title: label, directory, signal });
     const file = isString(answer.data?.file) ? answer.data.file : null;
+    // The answer can settle the wait just as the call ends (Stop, a chat
+    // message): nobody will read the path, so the file goes too.
+    if (signal?.aborted) {
+      if (file) await files.remove(file).catch(() => {});
+      throw new OpenChamberControlError('The card stopped waiting before the user answered', 499);
+    }
     if (answer.summary === 'saved' && file) {
       return { answer: { status: 'saved', file }, note: SAVED_NOTE };
     }
