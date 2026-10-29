@@ -94,6 +94,8 @@ export const OpenChamberToolsSettings: React.FC = () => {
   const setAgentNotifyToolEnabled = useUIStore((state) => state.setAgentNotifyToolEnabled);
   const agentRenderToolEnabled = useUIStore((state) => state.agentRenderToolEnabled);
   const setAgentRenderToolEnabled = useUIStore((state) => state.setAgentRenderToolEnabled);
+  const agentSecretToolEnabled = useUIStore((state) => state.agentSecretToolEnabled);
+  const setAgentSecretToolEnabled = useUIStore((state) => state.setAgentSecretToolEnabled);
   // Absent in builds without workflows, the way memory is.
   const agentWorkflowAvailable = useUIStore((state) => state.agentWorkflowFeatureAvailable);
   const agentWorkflowToolEnabled = useUIStore((state) => state.agentWorkflowToolEnabled);
@@ -125,6 +127,11 @@ export const OpenChamberToolsSettings: React.FC = () => {
     setAgentRenderToolEnabled(enabled);
     void updateDesktopSettings({ agentRenderToolEnabled: enabled });
   }, [setAgentRenderToolEnabled]);
+
+  const handleAgentSecretToolChange = React.useCallback((enabled: boolean) => {
+    setAgentSecretToolEnabled(enabled);
+    void updateDesktopSettings({ agentSecretToolEnabled: enabled });
+  }, [setAgentSecretToolEnabled]);
 
   const handleAgentKnowledgeToolChange = React.useCallback((enabled: boolean) => {
     setAgentKnowledgeToolEnabled(enabled);
@@ -273,6 +280,17 @@ export const OpenChamberToolsSettings: React.FC = () => {
           summary={t('settings.openchamber.tools.field.agentRenderToolSummary')}
           info={t('settings.openchamber.tools.field.agentRenderToolInfo')}
           ariaLabel={t('settings.openchamber.tools.field.agentRenderToolAria')}
+        />
+
+        <ToolRow
+          icon="shield-keyhole"
+          settingsItem="sessions.agent-secret-tool"
+          checked={agentSecretToolEnabled}
+          onChange={handleAgentSecretToolChange}
+          title={t('settings.openchamber.tools.field.agentSecretTool')}
+          summary={t('settings.openchamber.tools.field.agentSecretToolSummary')}
+          info={t('settings.openchamber.tools.field.agentSecretToolInfo')}
+          ariaLabel={t('settings.openchamber.tools.field.agentSecretToolAria')}
         />
 
         <ToolRow

@@ -1,4 +1,4 @@
-/** The card an agent asks for a secret on (`openchamber_secret`) — merged into each locale's main dictionary. */
+/** The card an agent asks for a secret on (`openchamber_secret`) and the secret tool's settings row — merged into each locale's main dictionary. */
 export const secretRequestI18n = {
   en: {
     'chat.secretRequest.inputLabel': 'Secret value',
@@ -10,6 +10,10 @@ export const secretRequestI18n = {
     'chat.secretRequest.declined': '{label} · Declined',
     'chat.secretRequest.notGiven': '{label} · Not given',
     'chat.secretRequest.saveFailed': 'The secret was not saved',
+    'settings.openchamber.tools.field.agentSecretTool': 'Agent secret tool',
+    'settings.openchamber.tools.field.agentSecretToolAria': 'Agent secret tool',
+    'settings.openchamber.tools.field.agentSecretToolSummary': 'Let agents ask you for an API key, token or password on a private card in the chat. The value stays out of the conversation.',
+    'settings.openchamber.tools.field.agentSecretToolInfo': 'A saved value goes to a private file on the machine running OpenChamber, where the agent\'s commands can read it. The file is deleted after 24 hours.',
   },
   nl: {
     'chat.secretRequest.inputLabel': 'Waarde van het geheim',
@@ -21,6 +25,10 @@ export const secretRequestI18n = {
     'chat.secretRequest.declined': '{label} · Geweigerd',
     'chat.secretRequest.notGiven': '{label} · Niet gegeven',
     'chat.secretRequest.saveFailed': 'Het geheim is niet opgeslagen',
+    'settings.openchamber.tools.field.agentSecretTool': 'Geheimentool voor agents',
+    'settings.openchamber.tools.field.agentSecretToolAria': 'Geheimentool voor agents',
+    'settings.openchamber.tools.field.agentSecretToolSummary': 'Laat agents je om een API-sleutel, token of wachtwoord vragen via een privékaart in de chat. De waarde blijft buiten het gesprek.',
+    'settings.openchamber.tools.field.agentSecretToolInfo': 'Een opgeslagen waarde komt in een privébestand op de machine waarop OpenChamber draait, waar de opdrachten van de agent het kunnen lezen. Het bestand wordt na 24 uur verwijderd.',
   },
   de: {
     'chat.secretRequest.inputLabel': 'Wert des Geheimnisses',
@@ -32,6 +40,10 @@ export const secretRequestI18n = {
     'chat.secretRequest.declined': '{label} · Abgelehnt',
     'chat.secretRequest.notGiven': '{label} · Nicht angegeben',
     'chat.secretRequest.saveFailed': 'Das Geheimnis wurde nicht gespeichert',
+    'settings.openchamber.tools.field.agentSecretTool': 'Geheimnistool für Agenten',
+    'settings.openchamber.tools.field.agentSecretToolAria': 'Geheimnistool für Agenten',
+    'settings.openchamber.tools.field.agentSecretToolSummary': 'Agenten können dich über eine private Karte im Chat nach einem API-Schlüssel, Token oder Passwort fragen. Der Wert bleibt aus dem Gespräch heraus.',
+    'settings.openchamber.tools.field.agentSecretToolInfo': 'Ein gespeicherter Wert landet in einer privaten Datei auf dem Rechner, auf dem OpenChamber läuft, wo die Befehle des Agenten sie lesen können. Die Datei wird nach 24 Stunden gelöscht.',
   },
   es: {
     'chat.secretRequest.inputLabel': 'Valor del secreto',
@@ -43,6 +55,10 @@ export const secretRequestI18n = {
     'chat.secretRequest.declined': '{label} · Rechazado',
     'chat.secretRequest.notGiven': '{label} · No se entregó',
     'chat.secretRequest.saveFailed': 'No se guardó el secreto',
+    'settings.openchamber.tools.field.agentSecretTool': 'Herramienta de secretos del agente',
+    'settings.openchamber.tools.field.agentSecretToolAria': 'Herramienta de secretos del agente',
+    'settings.openchamber.tools.field.agentSecretToolSummary': 'Permite que los agentes te pidan una clave de API, un token o una contraseña en una tarjeta privada del chat. El valor queda fuera de la conversación.',
+    'settings.openchamber.tools.field.agentSecretToolInfo': 'Un valor guardado va a un archivo privado en la máquina donde corre OpenChamber, donde los comandos del agente pueden leerlo. El archivo se borra a las 24 horas.',
   },
   fr: {
     'chat.secretRequest.inputLabel': 'Valeur du secret',
@@ -54,6 +70,10 @@ export const secretRequestI18n = {
     'chat.secretRequest.declined': '{label} · Refusé',
     'chat.secretRequest.notGiven': '{label} · Non fourni',
     'chat.secretRequest.saveFailed': 'Le secret n\'a pas été enregistré',
+    'settings.openchamber.tools.field.agentSecretTool': 'Outil de secrets de l\'agent',
+    'settings.openchamber.tools.field.agentSecretToolAria': 'Outil de secrets de l\'agent',
+    'settings.openchamber.tools.field.agentSecretToolSummary': 'Permet aux agents de vous demander une clé d\'API, un jeton ou un mot de passe sur une carte privée dans le chat. La valeur reste hors de la conversation.',
+    'settings.openchamber.tools.field.agentSecretToolInfo': 'Une valeur enregistrée va dans un fichier privé sur la machine qui exécute OpenChamber, où les commandes de l\'agent peuvent la lire. Le fichier est supprimé après 24 heures.',
   },
   ja: {
     'chat.secretRequest.inputLabel': 'シークレットの値',
@@ -65,6 +85,10 @@ export const secretRequestI18n = {
     'chat.secretRequest.declined': '{label} · 断りました',
     'chat.secretRequest.notGiven': '{label} · 未提供',
     'chat.secretRequest.saveFailed': 'シークレットを保存できませんでした',
+    'settings.openchamber.tools.field.agentSecretTool': 'エージェントのシークレットツール',
+    'settings.openchamber.tools.field.agentSecretToolAria': 'エージェントのシークレットツール',
+    'settings.openchamber.tools.field.agentSecretToolSummary': 'エージェントがチャット内の非公開カードで API キー、トークン、パスワードを尋ねられるようにします。値は会話に残りません。',
+    'settings.openchamber.tools.field.agentSecretToolInfo': '保存した値は OpenChamber を実行しているマシン上の非公開ファイルに書き込まれ、エージェントのコマンドから読み取れます。ファイルは 24 時間後に削除されます。',
   },
   ko: {
     'chat.secretRequest.inputLabel': '비밀 값',
@@ -76,6 +100,10 @@ export const secretRequestI18n = {
     'chat.secretRequest.declined': '{label} · 거절함',
     'chat.secretRequest.notGiven': '{label} · 제공되지 않음',
     'chat.secretRequest.saveFailed': '비밀을 저장하지 못했습니다',
+    'settings.openchamber.tools.field.agentSecretTool': '에이전트 비밀 도구',
+    'settings.openchamber.tools.field.agentSecretToolAria': '에이전트 비밀 도구',
+    'settings.openchamber.tools.field.agentSecretToolSummary': '에이전트가 채팅의 비공개 카드로 API 키, 토큰, 비밀번호를 요청할 수 있습니다. 값은 대화에 남지 않습니다.',
+    'settings.openchamber.tools.field.agentSecretToolInfo': '저장한 값은 OpenChamber가 실행 중인 컴퓨터의 비공개 파일에 기록되며, 에이전트의 명령이 읽을 수 있습니다. 파일은 24시간 후 삭제됩니다.',
   },
   pl: {
     'chat.secretRequest.inputLabel': 'Wartość sekretu',
@@ -87,6 +115,10 @@ export const secretRequestI18n = {
     'chat.secretRequest.declined': '{label} · Odmówiono',
     'chat.secretRequest.notGiven': '{label} · Nie podano',
     'chat.secretRequest.saveFailed': 'Nie zapisano sekretu',
+    'settings.openchamber.tools.field.agentSecretTool': 'Narzędzie sekretów agenta',
+    'settings.openchamber.tools.field.agentSecretToolAria': 'Narzędzie sekretów agenta',
+    'settings.openchamber.tools.field.agentSecretToolSummary': 'Pozwala agentom poprosić cię o klucz API, token lub hasło na prywatnej karcie w czacie. Wartość nie trafia do rozmowy.',
+    'settings.openchamber.tools.field.agentSecretToolInfo': 'Zapisana wartość trafia do prywatnego pliku na maszynie, na której działa OpenChamber, gdzie polecenia agenta mogą ją odczytać. Plik jest usuwany po 24 godzinach.',
   },
   'pt-BR': {
     'chat.secretRequest.inputLabel': 'Valor do segredo',
@@ -98,6 +130,10 @@ export const secretRequestI18n = {
     'chat.secretRequest.declined': '{label} · Recusado',
     'chat.secretRequest.notGiven': '{label} · Não informado',
     'chat.secretRequest.saveFailed': 'O segredo não foi salvo',
+    'settings.openchamber.tools.field.agentSecretTool': 'Ferramenta de segredos do agente',
+    'settings.openchamber.tools.field.agentSecretToolAria': 'Ferramenta de segredos do agente',
+    'settings.openchamber.tools.field.agentSecretToolSummary': 'Permite que os agentes peçam uma chave de API, um token ou uma senha em um cartão privado no chat. O valor fica fora da conversa.',
+    'settings.openchamber.tools.field.agentSecretToolInfo': 'Um valor salvo vai para um arquivo privado na máquina que executa o OpenChamber, onde os comandos do agente podem lê-lo. O arquivo é apagado após 24 horas.',
   },
   tr: {
     'chat.secretRequest.inputLabel': 'Gizli değer',
@@ -109,6 +145,10 @@ export const secretRequestI18n = {
     'chat.secretRequest.declined': '{label} · Reddedildi',
     'chat.secretRequest.notGiven': '{label} · Verilmedi',
     'chat.secretRequest.saveFailed': 'Gizli değer kaydedilemedi',
+    'settings.openchamber.tools.field.agentSecretTool': 'Ajan gizli değer aracı',
+    'settings.openchamber.tools.field.agentSecretToolAria': 'Ajan gizli değer aracı',
+    'settings.openchamber.tools.field.agentSecretToolSummary': 'Ajanların sohbette özel bir kartla senden API anahtarı, token veya parola istemesine izin verir. Değer sohbete girmez.',
+    'settings.openchamber.tools.field.agentSecretToolInfo': 'Kaydedilen değer, OpenChamber\'ın çalıştığı makinede ajanın komutlarının okuyabildiği özel bir dosyaya yazılır. Dosya 24 saat sonra silinir.',
   },
   uk: {
     'chat.secretRequest.inputLabel': 'Значення секрету',
@@ -120,6 +160,10 @@ export const secretRequestI18n = {
     'chat.secretRequest.declined': '{label} · Відхилено',
     'chat.secretRequest.notGiven': '{label} · Не надано',
     'chat.secretRequest.saveFailed': 'Секрет не збережено',
+    'settings.openchamber.tools.field.agentSecretTool': 'Інструмент секретів для агентів',
+    'settings.openchamber.tools.field.agentSecretToolAria': 'Інструмент секретів для агентів',
+    'settings.openchamber.tools.field.agentSecretToolSummary': 'Дозволяє агентам просити у вас API-ключ, токен або пароль у приватній картці в чаті. Значення не потрапляє в розмову.',
+    'settings.openchamber.tools.field.agentSecretToolInfo': 'Збережене значення записується в приватний файл на машині, де працює OpenChamber, і команди агента можуть його прочитати. Файл видаляється через 24 години.',
   },
   'zh-CN': {
     'chat.secretRequest.inputLabel': '密钥值',
@@ -131,6 +175,10 @@ export const secretRequestI18n = {
     'chat.secretRequest.declined': '{label} · 已拒绝',
     'chat.secretRequest.notGiven': '{label} · 未提供',
     'chat.secretRequest.saveFailed': '密钥未保存',
+    'settings.openchamber.tools.field.agentSecretTool': '智能体密钥工具',
+    'settings.openchamber.tools.field.agentSecretToolAria': '智能体密钥工具',
+    'settings.openchamber.tools.field.agentSecretToolSummary': '允许智能体在聊天中的私密卡片上向你索取 API 密钥、令牌或密码。值不会进入对话。',
+    'settings.openchamber.tools.field.agentSecretToolInfo': '保存的值会写入运行 OpenChamber 的机器上的私有文件，智能体的命令可以读取它。该文件会在 24 小时后删除。',
   },
   'zh-TW': {
     'chat.secretRequest.inputLabel': '密鑰值',
@@ -142,6 +190,10 @@ export const secretRequestI18n = {
     'chat.secretRequest.declined': '{label} · 已拒絕',
     'chat.secretRequest.notGiven': '{label} · 未提供',
     'chat.secretRequest.saveFailed': '密鑰未儲存',
+    'settings.openchamber.tools.field.agentSecretTool': '代理程式密鑰工具',
+    'settings.openchamber.tools.field.agentSecretToolAria': '代理程式密鑰工具',
+    'settings.openchamber.tools.field.agentSecretToolSummary': '允許代理程式在聊天中的私密卡片上向你索取 API 金鑰、權杖或密碼。值不會進入對話。',
+    'settings.openchamber.tools.field.agentSecretToolInfo': '儲存的值會寫入執行 OpenChamber 的機器上的私人檔案，代理程式的指令可以讀取它。該檔案會在 24 小時後刪除。',
   },
   ar: {
     'chat.secretRequest.inputLabel': 'قيمة السر',
@@ -153,6 +205,10 @@ export const secretRequestI18n = {
     'chat.secretRequest.declined': '{label} · رُفض',
     'chat.secretRequest.notGiven': '{label} · لم يُقدَّم',
     'chat.secretRequest.saveFailed': 'لم يُحفظ السر',
+    'settings.openchamber.tools.field.agentSecretTool': 'أداة الأسرار للوكيل',
+    'settings.openchamber.tools.field.agentSecretToolAria': 'أداة الأسرار للوكيل',
+    'settings.openchamber.tools.field.agentSecretToolSummary': 'يتيح للوكلاء طلب مفتاح API أو رمز أو كلمة مرور منك عبر بطاقة خاصة في المحادثة. تبقى القيمة خارج المحادثة.',
+    'settings.openchamber.tools.field.agentSecretToolInfo': 'تُكتب القيمة المحفوظة في ملف خاص على الجهاز الذي يشغّل OpenChamber، حيث يمكن لأوامر الوكيل قراءتها. يُحذف الملف بعد 24 ساعة.',
   },
   he: {
     'chat.secretRequest.inputLabel': 'ערך הסוד',
@@ -164,5 +220,9 @@ export const secretRequestI18n = {
     'chat.secretRequest.declined': '{label} · נדחה',
     'chat.secretRequest.notGiven': '{label} · לא נמסר',
     'chat.secretRequest.saveFailed': 'הסוד לא נשמר',
+    'settings.openchamber.tools.field.agentSecretTool': 'כלי הסודות של הסוכן',
+    'settings.openchamber.tools.field.agentSecretToolAria': 'כלי הסודות של הסוכן',
+    'settings.openchamber.tools.field.agentSecretToolSummary': 'מאפשר לסוכנים לבקש ממך מפתח API, טוקן או סיסמה בכרטיס פרטי בצ\'אט. הערך נשאר מחוץ לשיחה.',
+    'settings.openchamber.tools.field.agentSecretToolInfo': 'ערך שנשמר נכתב לקובץ פרטי במכונה שמריצה את OpenChamber, שם הפקודות של הסוכן יכולות לקרוא אותו. הקובץ נמחק אחרי 24 שעות.',
   },
 } as const;

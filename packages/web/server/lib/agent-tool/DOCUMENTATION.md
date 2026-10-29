@@ -74,8 +74,9 @@ the user can want independently:
   travels through the call: the chat posts it to the server, which writes it
   to a private file, and the call returns only `{ status, file }`
   (`../openchamber-control/secret-request.js`). Direct, never behind Code
-  Mode, because the chat draws the card from the call. On by default while
-  `agentSecretToolEnabled` is not `false`; prototype: no Settings row yet.
+  Mode, because the chat draws the card from the call. On by default:
+  enabled while `agentSecretToolEnabled` is not `false`, and the control
+  service refuses the action when it is, so a stale plugin cannot keep asking.
 - `openchamber_workflow` — `workflow.*`, scripts that fan a large task out to
   many agents, run by OpenChamber (`../workflows/DOCUMENTATION.md`). Only in
   builds with `OPENCHAMBER_WORKFLOWS_ENABLE`; there it is on unless
