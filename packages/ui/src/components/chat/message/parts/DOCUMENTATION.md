@@ -67,7 +67,9 @@ Use this doc when you ask an agent to change tool/header/description behavior.
   - `lib/turns/liveActivitySummary.ts` derives the report from tool results.
 
 - `ShownToolCard.tsx`
-  - What a call drawn in place of its row shows (`isShownInPlace` in `@/lib/opencode/tools`): the run a completed `workflow.run` call proposed (`proposedWorkflowRunId`, read from the call's result envelope), else the page of an `openchamber_render` call. Both ask something of the user, so both are hoisted to the answer with the turn's pages when Activity is collapsed.
+  - What a call drawn in place of its row shows (`isShownInPlace` in `@/lib/opencode/tools`): the run a completed `workflow.run` call proposed (`proposedWorkflowRunId`, read from the call's result envelope), the card of an `openchamber_secret` call (`requestedSecret`), else the page of an `openchamber_render` call. All ask something of the user, so all are hoisted to the answer with the turn's pages when Activity is collapsed.
+- `SecretRequestCard.tsx`
+  - The card an agent asks for a secret on: label, reason, a masked field that password managers are told to skip, Save securely and Decline. The value goes to the server through `answerSecretRequest` (`@/lib/secretRequestAnswer`) and never into the call, so the card's state comes from the call's status and the `status` the plugin copies into its metadata; what this client sent shows until the call completes. A refused answer (answered elsewhere, turn ended) shows a toast and keeps the card. Once answered it folds to one line.
   - The workflow card (`components/chat/workflows/WorkflowRunCard.tsx`) reads the run from the server's store, not from the call: the plan with its phases, the run's state, and Run and Don't run while it waits for approval, Stop while it runs, Resume after a failure or stop. The card is current after a reload and on every device; a run the server no longer has says so.
   - The run's report arrives later as a synthetic message (`lib/workflows/report.ts`) and renders as one collapsed line in `TimelineNotice`, like a dispatched session's result, opening a turn of its own.
 

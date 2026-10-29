@@ -398,6 +398,56 @@ export function renderedPage(
   return { html, title, ask: { kind: "show" } }
 }
 
+const secretRequestFields = z.object({
+  label: optionalText,
+  reason: optionalText,
+  placeholder: optionalText,
+})
+
+// Read like a page's input: inside `parameters` or beside `action`.
+const secretRequestInputSchema = secretRequestFields
+  .extend({ parameters: secretRequestFields.optional().catch(undefined) })
+  .catch({})
+
+/** Where a secret request stands. `not-given`: the user wrote in the chat, or the turn ended first. */
+export type SecretRequestState = "waiting" | "saved" | "declined" | "not-given"
+
+// How a secret request ended, as the plugin records it in the call's metadata:
+// the server's status, or the plugin's own answer when the user wrote in the
+// chat. The file path the agent got is not needed here.
+const secretResultSchema = z
+  .object({
+    openchamber: z.object({
+      ok: z.boolean().optional().catch(undefined),
+      answer: z.union([
+        z.object({ status: z.enum(["saved", "declined"]) }).transform(({ status }): SecretRequestState => status),
+        z.object({ answered: z.literal(false) }).transform((): SecretRequestState => "not-given"),
+      ]).optional().catch(undefined),
+    }).optional().catch(undefined),
+  })
+  .catch({})
+
+export type RequestedSecret = { label: string; reason: string; placeholder: string | undefined; state: SecretRequestState }
+
+/**
+ * The card an `openchamber_secret` call asks on. A call the server refused
+ * keeps its tool row, so the refusal stays readable.
+ */
+export function requestedSecret(toolName: ToolName, state: ToolState): RequestedSecret | null {
+  if (toolName !== OPENCHAMBER_SECRET_TOOL) return null
+  const parsed = secretRequestInputSchema.parse(state.input ?? {})
+  const label = parsed.parameters?.label ?? parsed.label
+  const reason = parsed.parameters?.reason ?? parsed.reason
+  if (!label || !reason) return null
+  const request = { label, reason, placeholder: parsed.parameters?.placeholder ?? parsed.placeholder }
+  if (state.status === "running") return { ...request, state: "waiting" }
+  if (state.status === "error") return { ...request, state: "not-given" }
+  if (state.status !== "completed") return null
+  const result = secretResultSchema.parse(state.metadata ?? {}).openchamber
+  if (result?.ok !== true || !result.answer) return null
+  return { ...request, state: result.answer }
+}
+
 export function subagentAgent(input: ToolInput | undefined): string | undefined {
   return readInput(input).agent
 }
@@ -442,10 +492,11 @@ const MAX_DESCRIBED_TOOL_CALLS = 4
 const MAX_TEXT_LENGTH = 120
 
 const OPENCHAMBER_RENDER_TOOL = "openchamber_render"
+const OPENCHAMBER_SECRET_TOOL = "openchamber_secret"
 const OPENCHAMBER_WORKFLOW_TOOL = "openchamber_workflow"
 
-/** The control, schedule, browser, memory, knowledge, notify, render and workflow tools OpenChamber gives a session. */
-const OPENCHAMBER_TOOLS = new Set(["openchamber", "openchamber_schedule", "openchamber_web", "openchamber_memory", "openchamber_knowledge", "openchamber_notify", OPENCHAMBER_RENDER_TOOL, OPENCHAMBER_WORKFLOW_TOOL])
+/** The control, schedule, browser, memory, knowledge, notify, render, secret and workflow tools OpenChamber gives a session. */
+const OPENCHAMBER_TOOLS = new Set(["openchamber", "openchamber_schedule", "openchamber_web", "openchamber_memory", "openchamber_knowledge", "openchamber_notify", OPENCHAMBER_RENDER_TOOL, OPENCHAMBER_SECRET_TOOL, OPENCHAMBER_WORKFLOW_TOOL])
 
 // The result envelope the agent tool returns as text (`agent-tool/runtime.js`).
 const proposedWorkflowResultSchema = z.object({
@@ -473,12 +524,14 @@ export function proposedWorkflowRunId(toolName: ToolName, state: ToolState): str
 
 /**
  * Whether the chat draws what a call showed instead of its tool row: a page
- * from `openchamber_render`, or the run a `workflow.run` call proposed. Both
- * ask something of the user, so both are hoisted to the answer when Activity
- * is collapsed.
+ * from `openchamber_render`, a secret card from `openchamber_secret`, or the
+ * run a `workflow.run` call proposed. All ask something of the user, so all
+ * are hoisted to the answer when Activity is collapsed.
  */
 export const isShownInPlace = (toolName: ToolName, state: ToolState): boolean => (
-  renderedPage(toolName, state) !== null || proposedWorkflowRunId(toolName, state) !== null
+  renderedPage(toolName, state) !== null
+  || requestedSecret(toolName, state) !== null
+  || proposedWorkflowRunId(toolName, state) !== null
 )
 
 const openChamberCallSchema = z
@@ -489,7 +542,7 @@ const openChamberCallSchema = z
   })
   .catch({})
 
-/** A call to one of OpenChamber's own tools: which tool, the `action` it ran, and whether its page waits for the user. */
+/** A call to one of OpenChamber's own tools: which tool, the `action` it ran, and whether it waits for the user (a page, or every secret card). */
 export type OpenChamberToolCall = { tool: string; action?: string; awaitsAnswer: boolean }
 
 /**
@@ -539,7 +592,8 @@ export function openChamberToolCall(toolName: ToolName, input: JsonValue | undef
   const tool = normalizeToolName(toolName)
   if (!OPENCHAMBER_TOOLS.has(tool)) return null
   const parsed = openChamberCallSchema.parse(input ?? {})
-  return { tool, action: parsed.action, awaitsAnswer: (parsed.parameters?.awaitAnswer ?? parsed.awaitAnswer) === true }
+  const awaitsAnswer = tool === OPENCHAMBER_SECRET_TOOL || (parsed.parameters?.awaitAnswer ?? parsed.awaitAnswer) === true
+  return { tool, action: parsed.action, awaitsAnswer }
 }
 
 /**

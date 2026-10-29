@@ -66,6 +66,16 @@ the user can want independently:
   `session.prompt` hook: a prompt for the session, from any sender, aborts the
   waiting call, which returns `{ answered: false, reason: "chat" }`, and the
   agent reads the message next.
+- `openchamber_secret` — `secret.request`, a card in the chat where the user
+  types a secret the agent asked for (`label`, `reason`, optional
+  `placeholder`). Every call waits, with the same plugin machinery as a page
+  with `awaitAnswer` (call id, `timeout: false`, the `session.prompt` hook
+  that ends the wait when the user writes in the chat). The value never
+  travels through the call: the chat posts it to the server, which writes it
+  to a private file, and the call returns only `{ status, file }`
+  (`../openchamber-control/secret-request.js`). Direct, never behind Code
+  Mode, because the chat draws the card from the call. On by default while
+  `agentSecretToolEnabled` is not `false`; prototype: no Settings row yet.
 - `openchamber_workflow` — `workflow.*`, scripts that fan a large task out to
   many agents, run by OpenChamber (`../workflows/DOCUMENTATION.md`). Only in
   builds with `OPENCHAMBER_WORKFLOWS_ENABLE`; there it is on unless

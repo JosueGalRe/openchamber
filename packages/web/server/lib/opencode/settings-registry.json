@@ -168,6 +168,9 @@
     "agentRenderToolEnabled": {
       "scope": "instance"
     },
+    "agentSecretToolEnabled": {
+      "scope": "instance"
+    },
     "agentToolsCodeMode": {
       "scope": "instance"
     },
