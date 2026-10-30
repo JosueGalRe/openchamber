@@ -147,7 +147,6 @@ import { createProjectContextRuntime } from './lib/project-context/runtime.js';
 import { createAgentMemoryRuntime } from './lib/agent-memory/runtime.js';
 import { createAgentMemoryActions } from './lib/agent-memory/actions.js';
 import { createMemoryProjectResolver } from './lib/agent-memory/project-resolution.js';
-import { isAgentMemoryFeatureAvailable } from './lib/agent-memory/feature-flag.js';
 import { createSpacesHost } from './lib/spaces/host.js';
 import { createSpaceArchive } from './lib/spaces/space-archive.js';
 import { readIdleStopSetting, startIdleStop } from './lib/spaces/idle-stop.js';
@@ -735,11 +734,6 @@ const agentMemoryRuntime = createAgentMemoryRuntime({
  * that still reads or writes the store.
  */
 const isAgentMemoryEnabled = async () => {
-  // The feature gate comes first: unreleased means absent, not merely switched
-  // off, so no stored setting can bring it back.
-  if (!isAgentMemoryFeatureAvailable()) {
-    return false;
-  }
   const settings = await readSettingsFromDiskMigrated().catch(() => null);
   return settings?.agentMemoryToolEnabled === true;
 };
@@ -2342,7 +2336,6 @@ async function main(options = {}) {
     agentToolRuntime,
     limitFailoverRuntime,
     readSettings: () => readSettingsFromDiskMigrated(),
-    isAgentMemoryAvailable: isAgentMemoryFeatureAvailable,
     isWorkflowAvailable: isWorkflowFeatureAvailable,
   });
   await ensureChatsDir({ fsPromises, chatsDir: OPENCHAMBER_CHATS_DIR, warn: (message) => console.warn(`[data-dir] ${message}`) });

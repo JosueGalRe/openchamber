@@ -203,13 +203,12 @@ the attempt from the only person able to judge it.
 Patterns, not a model — this runs on every index build. That buys the blunt
 cases only, which is the honest expectation.
 
-## Shipping dark
+## The memory switch
 
-Agent memory is complete but unreleased. `OPENCHAMBER_MEMORY_ENABLE` decides
-whether it exists in a given process at all: unset, there is no tool, no routes,
-no session index, no settings row and no panel tab — absent rather than switched
-off, which would invite turning on something never announced. The setting itself
-also defaults to off, so setting the variable does not enable memory by itself.
+`agentMemoryToolEnabled` decides whether memory exists for this server: off,
+there is no tool, the routes answer "disabled", sessions get no index, and the
+panel has no tab. It defaults to off, so nobody gets a store written about them
+without turning it on.
 
 Pinned notes and plans are unaffected by the memory switch and remain scoped to
 the session that pinned them.

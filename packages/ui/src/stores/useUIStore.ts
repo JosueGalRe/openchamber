@@ -1158,8 +1158,8 @@ interface UIStore {
   /** The permission mode the server writes onto each new top-level session. */
   permissionDefaultMode: PermissionMode;
   /**
-   * Whether this build has agent memory at all. Server-owned and not
-   * persisted: an unreleased feature must not come back from a stale cache.
+   * Whether an OpenChamber server backs agent memory here; false in VS Code.
+   * Server-owned and not persisted.
    */
   agentMemoryFeatureAvailable: boolean;
   /**
