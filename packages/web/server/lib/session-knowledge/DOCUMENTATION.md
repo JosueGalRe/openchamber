@@ -87,6 +87,11 @@ rather than indexed as empty, which would teach the agent to store again what it
 already has.
 
 Each of the pinned and memory entries is cut at 8,000 characters, and says so.
+The memory index is fitted to that budget before it is cut: whole titles, newest
+first per scope, then a count of the older ones left out and a pointer to
+`memory.list`. A full project store's titles outgrow the budget on their own, and
+cutting the rendered text dropped the newest entries mid-title. Titles carry no
+type tag for the same reason: it cost a sixth of the index and decided nothing.
 The response style keeps the full custom text allowed by settings, up to 50,000
 characters. It has no knowledge-entry truncation budget.
 
