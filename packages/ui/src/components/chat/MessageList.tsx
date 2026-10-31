@@ -9,6 +9,7 @@ import { isSkippedTimelineMessage, isBackgroundReportEntry, isTimelineNoticeRole
 import { earlierAssistantText } from './lib/turns/earlierAssistantText';
 import { areOptionalRenderRelevantMessagesEqual, areRelevantTurnGroupingContextsEqual, areRenderRelevantMessagesEqual } from './message/renderCompare';
 import TurnItem from './components/TurnItem';
+import { isHiddenUserMessage } from './message/hiddenUserMessage';
 import { LiveTurnActivity } from './components/LiveTurnActivity';
 import { PendingWorkflowApprovals } from './workflows/PendingWorkflowApprovals';
 import { getTurnsWithLaterAssistant, hasLiveActivity } from './lib/turns/liveActivity';
@@ -428,9 +429,16 @@ const TurnBlock = React.memo(({
         ]
     );
 
+    // The gap under an answer sits on the turn from the moment it is sent, so
+    // the steps of a running answer never hand it to each other (each new step
+    // moved the transcript by 8px), and no settled row changes height later:
+    // the list measures that a frame late. A hidden prompt continues the turn.
+    const gapBelow = !isHiddenUserMessage(nextEntryFirstMessage);
+
     return (
         <TurnItem
             turn={turn}
+            gapBelow={gapBelow}
             renderMessage={renderMessage}
             assistantContent={!defaultActivityExpanded && hasLiveActivity(turn, showReasoningTraces) ? (
                 <LiveTurnActivity

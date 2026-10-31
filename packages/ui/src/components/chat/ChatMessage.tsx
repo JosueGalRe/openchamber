@@ -49,10 +49,6 @@ import { useChatColumnActions } from './chatColumnSession';
 
 const ToolOutputDialog = lazyWithChunkRecovery(() => import('./message/ToolOutputDialog'));
 
-// A running text step keeps no bottom padding while its row holds neither
-// revealed text nor the split message actions (see isRunningTextStep).
-const BLANK_STEP_NO_PADDING = '[&:not(:has([data-message-text-export-source]:not(:empty))):not(:has([data-message-actions]))]:pb-0';
-
 const EXPANDED_TOOLS_CACHE_MAX = 4000;
 const expandedToolsStateCache = new Map<string, Set<string>>();
 
@@ -502,18 +498,6 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
 
     const hasTextContent = messageTextContent.length > 0;
 
-    // A running step that only writes text draws nothing until its first
-    // block is revealed: Claude opens its text block empty, and a paragraph is
-    // held until it ends (lib/streamTextCommit.ts). The bottom padding alone
-    // grew the transcript by 8px, and the follow lifted the sent message by
-    // that much with nothing on screen. The text part reveals behind a
-    // throttle, so the row reads what it actually holds, in the same commit.
-    const isRunningTextStep = !isUser
-        && !isMessageCompleted
-        && messageFinish !== 'stop'
-        && !assistantErrorText
-        && visibleParts.every((part) => part.type === 'text');
-
     // The turn footer copies the whole reply: what the earlier steps of the
     // turn wrote before their tool calls, then this message.
     const earlierAssistantText = isUser ? undefined : turnGroupingContext?.earlierAssistantText;
@@ -632,8 +616,9 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
                 className={cn(
                     'group w-full',
                     isUser ? (isMobile ? 'pt-2' : 'pt-4') : 'pt-0',
-                    isUser ? 'pb-0' : (isFollowedByAssistant || nextIsHiddenUserMessage) ? 'pb-0' : 'pb-2',
-                    isRunningTextStep && BLANK_STEP_NO_PADDING
+                    // In the transcript the gap under an answer is the
+                    // turn's (TurnItem gapBelow); only ungrouped lists (BTW) keep it here.
+                    isUser || hasTurnGrouping || isFollowedByAssistant || nextIsHiddenUserMessage ? 'pb-0' : 'pb-2'
                 )}
                 id={`message-${message.info.id}`}
                 data-message-id={message.info.id}
