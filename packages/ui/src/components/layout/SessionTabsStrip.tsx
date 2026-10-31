@@ -97,8 +97,8 @@ const contextComponents: SessionTabMenuComponents = {
 };
 
 /**
- * One tab, active or not. The tab drags to reorder; the close control sits
- * at the tab's end, revealed on hover. The session menu, supplied by the
+ * One tab, active or not. The tab drags to reorder; on hover the close
+ * control takes the project icon's slot at the tab's start. The session menu, supplied by the
  * header via `renderMenu`, opens on right-click under the cursor without
  * changing the active tab. While the active tab is renaming, the close
  * control is hidden; only the rename controls show.
@@ -195,14 +195,33 @@ const SessionTabItem: React.FC<{
                       : 'cursor-pointer text-muted-foreground hover:bg-interactive-hover hover:text-foreground',
                   )}
                 >
-                  <div className={cn(
-                    'flex min-w-0 flex-1 items-center',
-                    !suppressControls && 'group-hover/session-tab:pe-5',
-                  )}
-                  >
+                  <div className="flex min-w-0 flex-1 items-center">
                     {/* Which project the session belongs to, so a strip of
-                        tabs from several projects stays readable. */}
-                    <SessionProjectIcon directory={resolveGlobalSessionDirectory(tab.session)} className="me-1.5" />
+                        tabs from several projects stays readable. On hover
+                        the close button takes its slot, so the tab reserves
+                        no room for it at the end. */}
+                    <span className="relative me-1.5 inline-flex size-3.5 shrink-0 items-center justify-center">
+                      <SessionProjectIcon
+                        directory={resolveGlobalSessionDirectory(tab.session)}
+                        className={cn(!suppressControls && 'group-hover/session-tab:opacity-0 group-has-[:focus-visible]/session-tab:opacity-0')}
+                      />
+                      {!suppressControls ? (
+                        <Tooltip>
+                        <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label={t('header.sessionTabs.closeTab')}
+                          onClick={(event) => { event.stopPropagation(); onClose(tab.id); }}
+                          onPointerDown={(event) => event.stopPropagation()}
+                          className="absolute inset-0 flex items-center justify-center rounded text-muted-foreground opacity-0 hover:text-foreground focus-visible:opacity-100 group-hover/session-tab:opacity-100"
+                        >
+                          <Icon name="close" className="size-3.5" />
+                        </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" sideOffset={6}><TooltipLabelWithShortcut label={t('header.sessionTabs.closeTab')} shortcut={isActive ? formatShortcutForDisplay(isDesktopShell() ? 'mod+w' : getEffectiveShortcutCombo('close_session_tab', shortcutOverrides), '') : undefined} /></TooltipContent>
+                        </Tooltip>
+                      ) : null}
+                    </span>
                     <div className={cn(
                       'min-w-0 flex-1 overflow-hidden whitespace-nowrap',
                       !suppressControls && 'session-tab-title',
@@ -221,40 +240,13 @@ const SessionTabItem: React.FC<{
                         </div>
                       )}
                     </div>
+                    {/* The state mark takes room only while there is one. */}
                     {isAiRenaming ? (
                       <Icon name="loader-4" className="ms-1.5 size-3 shrink-0 animate-spin text-primary" aria-label={t('sessions.aiRename.generating')} />
                     ) : showDot ? (
-                      <SessionActivityIndicator
-                        state={turnActivity ?? 'unread'}
-                        className={cn('ms-1.5 shrink-0', !suppressControls && 'group-hover/session-tab:opacity-0')}
-                      />
+                      <SessionActivityIndicator state={turnActivity ?? 'unread'} className="ms-1.5 shrink-0" />
                     ) : null}
                   </div>
-                  {!suppressControls ? (
-                    <div
-                      onClick={(event) => event.stopPropagation()}
-                      onPointerDown={(event) => event.stopPropagation()}
-                      className={cn(
-                        'absolute inset-e-1 top-1/2 hidden -translate-y-1/2 items-center gap-0.5',
-                        'opacity-0 transition-opacity duration-150',
-                        'group-hover/session-tab:flex group-hover/session-tab:opacity-100',
-                      )}
-                    >
-                      <Tooltip>
-                      <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        aria-label={t('header.sessionTabs.closeTab')}
-                        onClick={() => onClose(tab.id)}
-                        className="flex size-5 items-center justify-center rounded text-muted-foreground hover:text-foreground"
-                      >
-                        <Icon name="close" className="size-4" />
-                      </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" sideOffset={6}><TooltipLabelWithShortcut label={t('header.sessionTabs.closeTab')} shortcut={isActive ? formatShortcutForDisplay(isDesktopShell() ? 'mod+w' : getEffectiveShortcutCombo('close_session_tab', shortcutOverrides), '') : undefined} /></TooltipContent>
-                      </Tooltip>
-                    </div>
-                  ) : null}
                 </div>
               )}
         />
