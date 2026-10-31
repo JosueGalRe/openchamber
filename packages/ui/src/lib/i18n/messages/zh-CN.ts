@@ -2227,7 +2227,7 @@ export const dict: Record<I18nKey, string> = {
   'helpDialog.item.togglePromptNavigator': '显示或隐藏提示词导航',
   'helpDialog.item.abortActiveRun': '中止当前运行（双击）',
   'helpDialog.item.toggleTerminalDock': '切换终端停靠栏',
-  'helpDialog.item.toggleTerminalExpanded': '切换终端展开状态',
+  'helpDialog.item.toggleContextPanelExpanded': '展开或收起面板',
   'helpDialog.item.cycleTheme': '循环切换主题（浅色 → 深色 → 跟随系统）',
   'helpDialog.item.switchSessionTab': '切换会话标签页',
   'helpDialog.item.switchContextSurface': '切换上下文面板界面（数字键）',

@@ -2230,7 +2230,7 @@ export const dict: Record<I18nKey, string> = {
   "helpDialog.item.togglePromptNavigator": "Показати або приховати навігатор промптів",
   "helpDialog.item.abortActiveRun": "Перервати активний запуск (подвійне натискання)",
   "helpDialog.item.toggleTerminalDock": "Перемкнути панель терміналу",
-  "helpDialog.item.toggleTerminalExpanded": "Розгорнути або згорнути термінал",
+  "helpDialog.item.toggleContextPanelExpanded": "Розгорнути або згорнути панель",
   "helpDialog.item.cycleTheme": "Перемкнути тему (Світла → Темна → Системна)",
   "helpDialog.item.switchSessionTab": "Перемкнути вкладку сесії",
   "helpDialog.item.switchContextSurface": "Перемкнути поверхню панелі контексту (цифрова клавіша)",

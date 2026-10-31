@@ -2189,7 +2189,7 @@ export const dict = {
   'helpDialog.item.togglePromptNavigator': 'הצג/הסתר את ניווט ההנחיות',
   'helpDialog.item.abortActiveRun': 'עצור את ההרצה הפעילה (לחיצה כפולה)',
   'helpDialog.item.toggleTerminalDock': 'הצג/הסתר את מעגן המסוף',
-  'helpDialog.item.toggleTerminalExpanded': 'הרחב/כווץ את המסוף',
+  'helpDialog.item.toggleContextPanelExpanded': 'הרחבה או כיווץ של החלונית',
   'helpDialog.item.switchSessionTab': 'מעבר בין כרטיסיות הפעלה',
   'helpDialog.item.switchContextSurface': 'מעבר בין תצוגות חלונית ההקשר (מקש מספר)',
   'helpDialog.item.cycleTheme': 'מעבר בין ערכות נושא (בהירה → כהה → מערכת)',

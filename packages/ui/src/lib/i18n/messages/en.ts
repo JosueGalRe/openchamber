@@ -2261,7 +2261,7 @@ export const dict = {
   'helpDialog.item.togglePromptNavigator': 'Toggle Prompt Navigator',
   'helpDialog.item.abortActiveRun': 'Abort active run (double press)',
   'helpDialog.item.toggleTerminalDock': 'Toggle Terminal Dock',
-  'helpDialog.item.toggleTerminalExpanded': 'Toggle Terminal Expanded',
+  'helpDialog.item.toggleContextPanelExpanded': 'Expand or collapse panel',
   'helpDialog.item.switchSessionTab': 'Switch Session Tab',
   'helpDialog.item.switchContextSurface': 'Switch Context Panel Surface (number key)',
   'helpDialog.item.cycleTheme': 'Cycle Theme (Light → Dark → System)',

@@ -2010,7 +2010,7 @@ export const dict = {
   'helpDialog.item.togglePromptNavigator': 'Afficher ou masquer le navigateur de prompts',
   'helpDialog.item.abortActiveRun': 'Abandonner l’exécution active (double pression)',
   'helpDialog.item.toggleTerminalDock': 'Afficher/masquer le panneau du terminal',
-  'helpDialog.item.toggleTerminalExpanded': 'Agrandir/réduire le terminal',
+  'helpDialog.item.toggleContextPanelExpanded': 'Agrandir ou réduire le panneau',
   'helpDialog.item.cycleTheme': 'Basculer le thème (clair → sombre → système)',
   'helpDialog.item.switchSessionTab': 'Basculer l’onglet de session',
   'helpDialog.item.switchContextSurface': 'Basculer la surface du panneau contextuel (touche numérique)',

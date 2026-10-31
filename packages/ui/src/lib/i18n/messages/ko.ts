@@ -2261,7 +2261,7 @@ export const dict: Record<I18nKey, string> = {
   'helpDialog.item.togglePromptNavigator': '프롬프트 탐색기 표시/숨기기',
   'helpDialog.item.abortActiveRun': '활성 실행 중단(두 번 누르기)',
   'helpDialog.item.toggleTerminalDock': '터미널 독 전환',
-  'helpDialog.item.toggleTerminalExpanded': '터미널 펼치기/접기',
+  'helpDialog.item.toggleContextPanelExpanded': '패널 펼치기/접기',
   'helpDialog.item.cycleTheme': '테마 순환(라이트 → 다크 → 시스템)',
   'helpDialog.item.switchSessionTab': '세션 탭 전환',
   'helpDialog.item.switchContextSurface': '컨텍스트 패널 서피스 전환(숫자 키)',

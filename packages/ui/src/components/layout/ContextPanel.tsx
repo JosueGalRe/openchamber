@@ -427,6 +427,7 @@ export const ContextPanel: React.FC<{ zone?: ContextZone }> = ({ zone = 'right' 
   const pinContextPanelTab = useUIStore((state) => state.pinContextPanelTab);
   const toggleContextPanelExpanded = useUIStore((state) => state.toggleContextPanelExpanded);
   const setContextZoneSize = useUIStore((state) => state.setContextZoneSize);
+  const setContextZoneExpandedChatSize = useUIStore((state) => state.setContextZoneExpandedChatSize);
   const setActiveContextPanelTab = useUIStore((state) => state.setActiveContextPanelTab);
   const reorderContextPanelTabs = useUIStore((state) => state.reorderContextPanelTabs);
   const contextEditorTreeVisible = useUIStore((state) => state.contextEditorTreeVisible);
@@ -483,11 +484,17 @@ export const ContextPanel: React.FC<{ zone?: ContextZone }> = ({ zone = 'right' 
     isVertical ? clampHeight(next, maxPanelHeight(available)) : clampWidth(next, maxPanelWidth(available))
   ), [isVertical]);
   const chatMinimum = isVertical ? CONTEXT_CHAT_MIN_HEIGHT : CONTEXT_CHAT_MIN_WIDTH;
-  // Expanded, the zone takes everything but a chat column about as wide as
-  // the session sidebar it folds away (ZoneFitArbiter), never under the
-  // minimum, so the chat stays on screen beside it.
+  // Expanded, the zone takes everything but a chat column: the one the user
+  // resized it to while expanded, else about as wide as the session sidebar
+  // it folds away (ZoneFitArbiter), never under the minimum, so the chat
+  // stays on screen beside it. The chat's size is kept, not the zone's, so a
+  // window resize goes to the zone the user expanded.
   const sidebarWidth = useUIStore((state) => (isVertical ? 0 : state.sidebarWidth));
-  const expandedChatSize = isVertical ? CONTEXT_CHAT_MIN_HEIGHT : Math.max(CONTEXT_CHAT_MIN_WIDTH, sidebarWidth);
+  const expandedChatManual = useUIStore((state) => state.contextZoneExpandedChatSizes[zone]);
+  const expandedChatSize = Math.max(
+    chatMinimum,
+    expandedChatManual ?? (isVertical ? CONTEXT_CHAT_MIN_HEIGHT : sidebarWidth),
+  );
 
   // The area the zone shares with the chat, as state only while it decides
   // something: the zone is expanded across it, or the ceiling binds (the zone
@@ -663,7 +670,7 @@ export const ContextPanel: React.FC<{ zone?: ContextZone }> = ({ zone = 'right' 
   }, [clampSize, isTreeOnly]);
 
   const handleResizeStart = React.useCallback((event: React.PointerEvent) => {
-    if (!isOpen || isExpanded || !directoryKey) {
+    if (!isOpen || !directoryKey) {
       return;
     }
 
@@ -684,12 +691,13 @@ export const ContextPanel: React.FC<{ zone?: ContextZone }> = ({ zone = 'right' 
     resizeAvailableSizeRef.current = available && available > 0 ? available : null;
     document.documentElement.style.cursor = isVertical ? 'row-resize' : 'col-resize';
     event.preventDefault();
-  }, [cardBesidePanel, directoryKey, isExpanded, isOpen, isVertical, size]);
+  }, [cardBesidePanel, directoryKey, isOpen, isVertical, size]);
 
   const finishResize = React.useCallback(() => {
     // Apply the final size once, letting the size transition carry the zone
     // to the release position.
     const finalSize = clampSizeForDrag(resizingSizeRef.current ?? size);
+    const available = resizeAvailableSizeRef.current;
     resizingSizeRef.current = null;
     resizeAvailableSizeRef.current = null;
     if (resizeFollowTimerRef.current !== null) {
@@ -699,12 +707,15 @@ export const ContextPanel: React.FC<{ zone?: ContextZone }> = ({ zone = 'right' 
     document.documentElement.style.cursor = '';
     if (isTreeOnly) {
       setContextEditorTreeWidth(finalSize);
+    } else if (isExpanded) {
+      // Expanded, the drag sets what the chat keeps; the docked size stays.
+      if (available !== null) setContextZoneExpandedChatSize(zone, available - finalSize);
     } else {
       setContextZoneSize(zone, finalSize);
     }
     setIsResizing(false);
     activeResizePointerIDRef.current = null;
-  }, [clampSizeForDrag, isTreeOnly, setContextEditorTreeWidth, setContextZoneSize, size, zone]);
+  }, [clampSizeForDrag, isExpanded, isTreeOnly, setContextEditorTreeWidth, setContextZoneExpandedChatSize, setContextZoneSize, size, zone]);
 
   // Window-level drag listeners: tracking the pointer via the thin handle and
   // pointer capture is unreliable (capture can fail over iframes and a missed
@@ -1064,7 +1075,7 @@ export const ContextPanel: React.FC<{ zone?: ContextZone }> = ({ zone = 'right' 
             {isExpanded ? <Icon name="fullscreen-exit" className="h-3.5 w-3.5" /> : <Icon name="fullscreen" className="h-3.5 w-3.5" />}
           </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom" sideOffset={6}><TooltipLabelWithShortcut label={isExpanded ? t('contextPanel.actions.collapsePanel') : t('contextPanel.actions.expandPanel')} shortcut={activeTab?.mode === 'terminal' ? formatShortcutForDisplay(getEffectiveShortcutCombo('toggle_terminal_expanded', shortcutOverrides), '') : undefined} /></TooltipContent>
+          <TooltipContent side="bottom" sideOffset={6}><TooltipLabelWithShortcut label={isExpanded ? t('contextPanel.actions.collapsePanel') : t('contextPanel.actions.expandPanel')} shortcut={formatShortcutForDisplay(getEffectiveShortcutCombo('toggle_context_panel_expanded', shortcutOverrides), '')} /></TooltipContent>
           </Tooltip>
         ) : null}
         <Button
@@ -1190,7 +1201,7 @@ export const ContextPanel: React.FC<{ zone?: ContextZone }> = ({ zone = 'right' 
       {zone === 'right' ? (
         <div ref={setWorkStatusHost} className={cn('absolute inset-y-0 z-0 flex', cardBesidePanel ? 'inset-s-0' : 'inset-e-0', chatCovered && 'invisible')} />
       ) : null}
-      {isOpen && !isExpanded && (
+      {isOpen && (
         // In the gutter facing the chat, along the card's edge. Nothing paints
         // on hover or drag: the cursor says it is draggable, and the card edge
         // itself moves on release.

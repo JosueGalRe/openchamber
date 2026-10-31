@@ -2124,7 +2124,7 @@ export const dict = {
   'helpDialog.item.togglePromptNavigator': 'Prompt gezginini aç/kapat',
   'helpDialog.item.abortActiveRun': 'Etkin çalıştırmayı iptal et (çift basış)',
   'helpDialog.item.toggleTerminalDock': 'Terminal dock\'unu aç/kapat',
-  'helpDialog.item.toggleTerminalExpanded': 'Terminali genişlet/daralt',
+  'helpDialog.item.toggleContextPanelExpanded': 'Paneli genişlet/daralt',
   'helpDialog.item.switchContextSurface': 'Bağlam paneli yüzeyini değiştir (sayı tuşu)',
   'helpDialog.item.cycleTheme': 'Temayı değiştir (Açık → Koyu → Sistem)',
   'helpDialog.item.toggleServicesMenu': 'Hizmetler menüsünü aç/kapat',

@@ -2261,7 +2261,7 @@ export const dict = {
   'helpDialog.item.togglePromptNavigator': 'Promptnavigator in-/uitschakelen',
   'helpDialog.item.abortActiveRun': 'Actieve uitvoering afbreken (dubbel indrukken)',
   'helpDialog.item.toggleTerminalDock': 'Terminaldock in-/uitschakelen',
-  'helpDialog.item.toggleTerminalExpanded': 'Uitgeklapte terminal in-/uitschakelen',
+  'helpDialog.item.toggleContextPanelExpanded': 'Paneel uit- of inklappen',
   'helpDialog.item.switchSessionTab': 'Sessietabblad wisselen',
   'helpDialog.item.switchContextSurface': 'Contextpaneel wisselen (cijfertoets)',
   'helpDialog.item.cycleTheme': 'Thema doorlopen (Licht → Donker → Systeem)',

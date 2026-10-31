@@ -2189,7 +2189,7 @@ export const dict = {
   'helpDialog.item.togglePromptNavigator': 'إظهار/إخفاء متصفح الطلبات',
   'helpDialog.item.abortActiveRun': 'إيقاف التشغيل النشط (ضغطة مزدوجة)',
   'helpDialog.item.toggleTerminalDock': 'إظهار/إخفاء حاوية الطرفية',
-  'helpDialog.item.toggleTerminalExpanded': 'توسيع/تصغير الطرفية',
+  'helpDialog.item.toggleContextPanelExpanded': 'توسيع اللوحة أو تصغيرها',
   'helpDialog.item.switchSessionTab': 'تبديل علامة تبويب الجلسة',
   'helpDialog.item.switchContextSurface': 'تبديل واجهة لوحة السياق (مفتاح رقمي)',
   'helpDialog.item.cycleTheme': 'التبديل بين السمات (فاتح ← داكن ← النظام)',

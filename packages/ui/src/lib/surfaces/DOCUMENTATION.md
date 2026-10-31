@@ -101,12 +101,20 @@ keep the full height). The chat is always the centre and cannot move.
 - In a narrow window the chat keeps 320 px: a side zone that opens without
   room folds the session sidebar, then closes the other side zone, and both
   come back when it closes (`ZoneFitArbiter`, `lib/workspace/zoneFit.ts`).
-- Expanding a zone never covers the chat. The zone stays in the layout at
-  the largest size that leaves the chat a column as wide as the session
-  sidebar and at least 320 px (200 px of height beside the bottom zone; a
-  row under 640 px wide leaves less, since a zone keeps 320 px), and
-  the session sidebar folds while it is expanded so that column is where the
-  sidebar was. Collapsing gives the sidebar back unless the user toggled it
+- Expanding a zone never covers the chat. The zone stays in the layout and
+  leaves the chat a column: the one the user resized it to while expanded
+  (`useUIStore.contextZoneExpandedChatSizes`, px per zone), else as wide as
+  the session sidebar; at least 320 px either way (200 px of height beside
+  the bottom zone; a row under 640 px wide leaves less, since a zone keeps
+  320 px). The expanded zone keeps its resize handle; a drag there sets what
+  the chat keeps and leaves the docked size alone, so the docked and the
+  expanded zone each keep the size the user gave them. The chat's size is
+  stored, not the zone's, so a wider window goes to the zone. `Mod+Shift+F`
+  (`toggle_context_panel_expanded`, also the desktop View menu) expands the
+  zone holding focus, else the first one on screen, else opens the right one
+  expanded, and collapses an expanded one (`lib/workspace/toggleExpandedZone.ts`).
+  The session sidebar folds while a zone is expanded, so the chat column
+  takes the sidebar's place. Collapsing gives the sidebar back unless the user toggled it
   in between (`ZoneFitArbiter`). The zone takes the row as it will be once
   the sidebar has folded, so it grows in one move with it.
 - Another window's move is adopted through the `storage` event

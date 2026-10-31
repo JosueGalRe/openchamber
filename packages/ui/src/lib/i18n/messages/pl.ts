@@ -2899,7 +2899,7 @@ export const dict: Record<I18nKey, string> = {
   'helpDialog.item.toggleSessionSidebar': 'Przełącz panel sesji',
   'helpDialog.item.addSelectionToChat': 'Dodaj zaznaczenie do czatu',
   'helpDialog.item.toggleTerminalDock': 'Przełącz dolny terminal',
-  'helpDialog.item.toggleTerminalExpanded': 'Przełącz rozszerzenie terminala',
+  'helpDialog.item.toggleContextPanelExpanded': 'Rozwiń lub zwiń panel',
   'helpDialog.keyCombiner.or': 'lub',
   'helpDialog.proTips.commandPalette': 'Użyj Palety poleceń ({shortcut}), aby szybko uzyskać dostęp do wszystkich akcji',
   'helpDialog.proTips.recentSessions': '5 ostatnich sesji pojawia się w Palecie poleceń',

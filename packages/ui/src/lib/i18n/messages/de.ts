@@ -1993,7 +1993,7 @@ export const dict = {
   'helpDialog.item.togglePromptNavigator': 'Aufforderungs-Navigator umschalten',
   'helpDialog.item.abortActiveRun': 'Aktuelle Ausführung abbrechen (Doppeltaste)',
   'helpDialog.item.toggleTerminalDock': 'Terminal-Dock umschalten',
-  'helpDialog.item.toggleTerminalExpanded': 'Terminal erweitert umschalten',
+  'helpDialog.item.toggleContextPanelExpanded': 'Panel aus- oder einklappen',
   'helpDialog.item.cycleTheme': 'Thema wechseln (Hell → Dunkel → System)',
   'helpDialog.item.switchSessionTab': 'Sitzungs-Tab wechseln',
   'helpDialog.item.switchContextSurface': 'Kontextpanel-Oberfläche wechseln (Zahlentaste)',

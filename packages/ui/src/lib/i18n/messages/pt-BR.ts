@@ -2230,7 +2230,7 @@ export const dict: Record<I18nKey, string> = {
   "helpDialog.item.togglePromptNavigator": "Mostrar ou ocultar navegador de prompts",
   "helpDialog.item.abortActiveRun": "Interromper execução ativa (duplo clique)",
   "helpDialog.item.toggleTerminalDock": "Mostrar ou ocultar dock de terminal",
-  "helpDialog.item.toggleTerminalExpanded": "Expandir ou recolher o terminal",
+  "helpDialog.item.toggleContextPanelExpanded": "Expandir ou recolher painel",
   "helpDialog.item.cycleTheme": "Alternar tema (Claro → Escuro → Sistema)",
   "helpDialog.item.switchSessionTab": "Alternar aba de sessão",
   "helpDialog.item.switchContextSurface": "Alternar superfície do painel de contexto (tecla numérica)",

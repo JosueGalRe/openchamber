@@ -2257,7 +2257,7 @@ export const dict: Record<I18nKey, string> = {
   'helpDialog.item.togglePromptNavigator': 'プロンプトナビゲーターの表示切替',
   'helpDialog.item.abortActiveRun': 'アクティブな実行を中止（ダブルプレス）',
   'helpDialog.item.toggleTerminalDock': 'ターミナルドックの切り替え',
-  'helpDialog.item.toggleTerminalExpanded': 'ターミナル展開の切り替え',
+  'helpDialog.item.toggleContextPanelExpanded': 'パネルの展開を切り替え',
   'helpDialog.item.cycleTheme': 'テーマ切り替え（ライト→ダーク→システム）',
   'helpDialog.item.switchSessionTab': 'セッションタブを切り替え',
   'helpDialog.item.switchContextSurface': 'コンテキストパネルのサーフェスを切り替え（数字キー）',
