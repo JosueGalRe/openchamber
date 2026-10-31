@@ -113,6 +113,7 @@ LRU promotion changes visibility without moving retained iframe DOM.
 ## Row identity
 
 - **A row keeps its React tree when it becomes or stops being the live tail.** Every row renders through `TimelineRowContent` in `MessageList.tsx`; only the tail subscribes to streaming parts. The tail moves on every send and on a revert. When the tail had its own component type, the moving row remounted, its state reset for one commit (a long user message lost its "Show more" link, 28 px), and LegendList measured that commit in its layout effect. The `ResizeObserver` never corrects such a size, because the short height was never painted, so the row below sat that much too high until a later re-measure: 40-80 ms after a send, and from the revert until 200 ms into the next send. Anything that remounts or resets state inside a mounted row has the same effect.
+- **A running step takes no room until it draws something.** Claude opens its text block empty, and the first paragraph is held until it ends (`lib/streamTextCommit.ts`), so a step's row can exist for seconds with nothing to show. Its 8 px bottom padding alone grew the transcript, and the follow lifted the sent message by 8 px with nothing new on screen. `ChatMessage` drops that padding on a running step whose parts are all text, through a `:has()` rule that holds while the row has no revealed text and no split message actions in the DOM. Deciding it from the part data led the reveal by up to the 400 ms text throttle, so the padding came back before the text and the message still jumped.
 
 ## Measuring
 
