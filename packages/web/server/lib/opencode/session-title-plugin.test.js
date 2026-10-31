@@ -57,7 +57,23 @@ describe('session title plugin', () => {
     await runTransform(new Map([['title', title], ['build', build]]));
 
     expect(title.system).toContain('labels a folder');
+    expect(title.system).toContain('Most titles are two or three words');
+    expect(title.system).toContain('Leave out the name of the project');
     expect(build.system).toBe('Build prompt');
+  });
+
+  it('keeps every title example within the four-word limit', async () => {
+    const title = { id: 'title', system: 'OpenCode title prompt' };
+
+    await runTransform(new Map([['title', title]]));
+
+    // A weak model copies the example shape, so every example must stay inside
+    // the limit the prompt asks for.
+    const examples = title.system.split('\n').find((line) => line.startsWith('Examples: ')).slice('Examples: '.length);
+    for (const example of examples.split('; ')) {
+      const output = example.split(' → ')[1];
+      expect(output.split(/\s+/).length).toBeLessThanOrEqual(4);
+    }
   });
 
   it('pins the title language to the user message despite English-dominated examples', async () => {
@@ -65,7 +81,7 @@ describe('session title plugin', () => {
 
     await runTransform(new Map([['title', title]]));
 
-    expect(title.system).toContain('only the user\'s message decides the language');
+    expect(title.system).toContain('Only the user\'s message decides the language');
     // The examples are mostly English (one Ukrainian); a weak model imitates the
     // example language and drifts on a Chinese first message, so the prompt pins
     // the output language and carries an example in another language.

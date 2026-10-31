@@ -1285,6 +1285,23 @@ varied per request on the same input). The prompt now states that only the
 user's message decides the language and adds a Chinese example, the same
 pinning idiom `packages/ui/src/lib/smallModel.ts` uses for its notes.
 
+#### Why the prompt is short and every example fits four words
+
+The title runs on a small model that imitates the example shape more than a
+rule buried in a long prompt. A five-word Ukrainian example modelled the wrong
+length, and "Статус бага режиму плану OpenChamber" came back at five words
+even though the prompt said two to four. Its fifth word was the name of the
+project the session worked in, which the session list already shows, so the
+prompt tells the model to leave that name out. The prompt is now a short rule
+list, every example output fits the limit, one example drops the project name
+from a long question, and the last line aims at two or three words. The
+title model usually runs without reasoning and writes the title in one pass, so
+the prompt never asks it to count or trim what it wrote.
+
+The small model still sometimes returns five words on a long first message; the
+word limit is a prompt instruction, not a code cap. Only a post-processing cap
+or a stronger title model would make it exact, and both are product decisions.
+
 The embedded server controller exposes `getManagedOpenCodePreflight()` for
 desktop bootstrap. It shares the lifecycle's current CLI validation promise,
 including while validation is in flight. It returns false before validation
