@@ -45,7 +45,7 @@ OpenCode 2 loads the user config, then `OPENCODE_CONFIG`, then project `opencode
 - `packages/web/server/lib/agent-tool/runtime.js`: managed OpenCode custom-tool materialization, environment injection, same-machine authentication (loopback, or the bound address for a concrete bind), and fixed CLI action dispatch.
 - `packages/web/server/lib/opencode/managed-plugin-config.js`: the `OPENCODE_CONFIG_CONTENT` merge used only on the fallback path, when the user's own environment owns `OPENCODE_CONFIG`.
 - `packages/web/server/lib/opencode/managed-config-file.js`: the managed OpenCode config layer — materializes the enabled OpenChamber plugins (agent tools, the limit failover reporter from `../limit-failover/` while a fallback model or an account switch is set, and the session title prompt, always) and publishes them in a file OpenCode watches.
-- `packages/web/server/lib/opencode/session-title-plugin.js`: the plugin that gives OpenCode's hidden `title` agent OpenChamber's title style. See "Session title prompt" below.
+- `packages/web/server/lib/opencode/session-title-plugin.js`: the plugin that gives OpenCode's hidden `title` agent OpenChamber's title style and names a session started with attached context alone from that context. See "Session title prompt" below.
 - `packages/web/server/lib/opencode/instance-dir.js`: this server's own folder under `<data-dir>/run/instances/<pid>/` for the files its managed OpenCode reads, and removal of folders left by servers that are gone.
 
 ### Managed plugins on OpenCode 2.x
@@ -1245,14 +1245,36 @@ the folder-label style the UI's own regeneration uses
   agent file, still wins. OpenCode activates configured plugins after its
   built-in agents and before its config agents, so the config writes the
   prompt after this plugin.
+- OpenCode titles from the first user message's text only. Context the user
+  attached (a file comment, a browser annotation, PR checks) is admitted as
+  synthetic messages right before that message (`sendMessage` in
+  `packages/ui/src/lib/opencode/client.ts`), so a session started with context
+  and no words was titled "Empty message". The plugin's `title` hook reads the
+  session context, and when the first user message is shorter than 20
+  characters it adds the synthetic messages admitted before it, at most 2000
+  characters, as a second text part of the title request's user message. A
+  first message that already names the topic gets the request unchanged. A
+  failed context read leaves the request as OpenCode built it.
 
-#### Why an agent transform and not the `session.title` hook
+#### Why an agent transform and not the `session.title` hook for the prompt
 
 The hook runs on every title request, after config is applied, so it would
 overwrite a user's own `agents.title.system`, and telling the user's prompt
 apart from OpenCode's inside the hook means comparing prompt text. The agent
 transform takes OpenCode's own plugin order and leaves the user's choice on top
-with no check at all.
+with no check at all. The hook only adds input, which no config replaces.
+
+#### Why the attached context goes to the title model and not into `result`
+
+The hook could set `result` and skip the model, for example by naming the
+session after the comment's file. The model names the topic in the user's
+language and the folder-label style the prompt sets; a title built from the
+context's first line would read like a path or a quote. The context joins the
+same user message as a text part, because some providers reject two user
+messages in a row. The part only says the context came with the first message
+and gives no naming instruction: OpenCode's regeneration of a titled session
+sends the original request with the recent conversation, and an instruction to
+name the session after the context pulled that title back to the old topic.
 
 #### Why the prompt pins the title language and carries a non-English example
 

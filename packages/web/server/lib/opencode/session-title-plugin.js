@@ -17,11 +17,39 @@ const TITLE_SYSTEM_PROMPT = [
   'Examples: debug 500 errors in production → Production server errors; @src/App.tsx add dark mode → Dark mode; why does the relay hide its limit error, see issue #412 → Relay limit errors; review which dependencies have known CVEs → Security vulnerabilities; чому не працює вхід через GitHub на телефоні → Вхід через GitHub на мобільному; 检查项目的 git 记录和未完成的计划 → 项目进度检查.',
 ].join('\n');
 
+// A first message shorter than this names nothing on its own ("", "fix this"),
+// so the title also reads the context the user attached to it.
+const SHORT_MESSAGE_LENGTH = 20;
+// The same bound OpenCode puts on the first message it sends to the title model.
+const MAX_ATTACHED_CONTEXT_LENGTH = 2000;
+
 // No imports: OpenCode loads the entry from its own directory, where nothing
 // is installed. Configured plugins activate after OpenCode's built-in agents
 // and before its config agents, so this replaces the built-in title prompt
 // while an `agents.title.system` from the user's config still wins.
+//
+// OpenCode titles a session from the first user message's text only. Context
+// the user attached (a file comment, a browser annotation) is admitted as
+// synthetic messages right before that message, so a session started with
+// context alone would be titled from an empty message. The title hook adds
+// that context to the request when the message itself is too short to name.
 const PLUGIN_SOURCE = `const TITLE_SYSTEM_PROMPT = ${JSON.stringify(TITLE_SYSTEM_PROMPT)}
+const SHORT_MESSAGE_LENGTH = ${SHORT_MESSAGE_LENGTH}
+const MAX_ATTACHED_CONTEXT_LENGTH = ${MAX_ATTACHED_CONTEXT_LENGTH}
+
+/** Text of the synthetic messages admitted with the first user message, when that message is too short to name. */
+const attachedContextOfShortFirstMessage = (messages) => {
+  const firstUser = messages.findIndex((message) => message.type === "user")
+  if (firstUser === -1) return ""
+  if ((messages[firstUser].text ?? "").trim().length >= SHORT_MESSAGE_LENGTH) return ""
+  return messages
+    .slice(0, firstUser)
+    .filter((message) => message.type === "synthetic")
+    .map((message) => (message.text ?? "").trim())
+    .filter(Boolean)
+    .join("\\n\\n")
+    .slice(0, MAX_ATTACHED_CONTEXT_LENGTH)
+}
 
 export default {
   id: ${JSON.stringify(PLUGIN_ID)},
@@ -31,6 +59,29 @@ export default {
       editor.update("title", (agent) => {
         agent.system = TITLE_SYSTEM_PROMPT
       })
+    })
+    await ctx.session.hook("title", async (draft) => {
+      // A failed read leaves the title to the message alone, as OpenCode built it.
+      const context = await ctx.session.context({ sessionID: draft.sessionID })
+        .then(attachedContextOfShortFirstMessage, () => "")
+      const request = draft.messages.at(-1)
+      if (!context || request?.role !== "user") return
+      // A text part on the same user message: some providers reject two user messages in a row.
+      draft.messages = [
+        ...draft.messages.slice(0, -1),
+        {
+          role: "user",
+          content: [
+            ...request.content,
+            {
+              type: "text",
+              // No instruction to name it after the context: a renamed session's
+              // request already holds the recent conversation, which must lead.
+              text: "The user attached this context to their first message:\\n\\n<context>\\n" + context + "\\n</context>",
+            },
+          ],
+        },
+      ]
     })
   },
 }
