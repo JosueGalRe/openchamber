@@ -47,6 +47,19 @@ Full-screen extension pages are separate from this rail registry. `contributes.p
   Navigation) and stays aligned there at its saved width during the panel's
   collapse transition. The header's two layout icons keep their places and
   toggle whichever column stands on their side.
+- A zone's resize follows the pointer exactly, whatever the zone shows. Once
+  per frame the drag writes the size of the zone's slot and card, with their
+  size transition off, and stores the size on release. It writes neither the
+  size variable (a custom property inherits, and on the slot it restyled
+  every element of the surface on every frame) nor a cursor on the document
+  (an inherited `cursor` restyled the whole document as the drag began and
+  ended): a layer over the window carries the cursor and keeps an embedded
+  page from taking the pointer's moves. The drag holds the layout animation
+  (`holdLayoutAnimation` in `lib/layoutAnimation.ts`), so the work that
+  follows a width (markdown tables, scroll shadows, the active-turn spy)
+  waits for the release, and the chat skips laying out its off-screen
+  messages meanwhile (`components/chat/lib/scroll/DOCUMENTATION.md`). The
+  session sidebar's drag holds it too.
 - Rail order is user-reorderable and persisted globally in
   `useUIStore.contextRailOrder`; `sortContextSurfaces` applies it on top of the
   registry's default order and appends any missing surfaces.
@@ -128,6 +141,16 @@ a diff or a page next to the agent's work and still want to write to it.
 The float existed because collapsing straight back into the layout squeezed
 the chat to nothing and the transcript measured its rows at that width; with
 the chat column never below its minimum that cannot happen.
+
+### Why the drag is not deferred
+
+The zone used to apply its size at most every 100 ms and let its 240 ms size
+transition carry each step, so a reflow of the chat and the surface would not
+run on every pointer move. The edge trailed the pointer by 60 to 90 px, and
+the transition re-laid out the chat and the surface on every frame anyway.
+Following the pointer each frame costs about a fifth of the main thread with
+a 120-turn session and an open editor, once the work that reacts to widths
+waits for the release.
 
 ## Adding a surface
 
