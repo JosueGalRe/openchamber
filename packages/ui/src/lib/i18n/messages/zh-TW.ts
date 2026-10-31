@@ -708,7 +708,6 @@ export const dict: Record<I18nKey, string> = {
   'sessions.archivePage.restoreSessionAria': '還原 {title}',
   'sessions.switcher.openAria': '開啟會話切換器',
   'header.sessionTabs.stripAria': '開啟的會話',
-  'header.sessionTabs.tabMenuAria': '工作階段分頁動作',
   'header.sessionTabs.closeTab': '關閉分頁',
   'header.sessionTabs.closeOtherTabs': '關閉其他分頁',
   'sessions.switcher.empty': '沒有最近會話',

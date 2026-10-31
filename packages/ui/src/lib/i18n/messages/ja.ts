@@ -688,7 +688,6 @@ export const dict: Record<I18nKey, string> = {
   'header.sourceControl.avatarWithLogin': '{login}のアバター',
   'header.sourceControl.avatar': '{provider}アバター',
   'header.sourceControl.accountsTitle': '{provider}アカウント',
-  'header.sessionTabs.tabMenuAria': 'セッションタブの操作',
   'header.sessionTabs.closeTab': 'タブを閉じる',
   'header.sessionTabs.closeOtherTabs': '他のタブを閉じる',
   'sessions.switcher.empty': '最近のセッションはありません',

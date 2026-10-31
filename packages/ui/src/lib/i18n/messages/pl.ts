@@ -527,7 +527,6 @@ export const dict: Record<I18nKey, string> = {
   'header.sourceControl.avatarWithLogin': 'Awatar {login}',
   'header.sourceControl.connected': '{provider} połączony',
   'header.sourceControl.connectedWithLogin': '{provider}: {login}',
-  'header.sessionTabs.tabMenuAria': 'Akcje karty sesji',
   'header.sessionTabs.closeTab': 'Zamknij kartę',
   'header.sessionTabs.closeOtherTabs': 'Zamknij pozostałe karty',
   'sessions.switcher.empty': 'Brak ostatnich sesji',

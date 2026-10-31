@@ -609,7 +609,6 @@ export const dict = {
   'header.sourceControl.avatarWithLogin': '{login} Avatar',
   'header.sourceControl.avatar': '{provider}-Avatar',
   'header.sourceControl.accountsTitle': '{provider}-Konten',
-  'header.sessionTabs.tabMenuAria': 'Aktionen für den Sitzungs-Tab',
   'header.sessionTabs.closeTab': 'Tab schließen',
   'header.sessionTabs.closeOtherTabs': 'Andere Tabs schließen',
   'sessions.switcher.empty': 'Keine kürzlichen Sitzungen',

@@ -687,7 +687,6 @@ export const dict = {
   'header.sourceControl.avatarWithLogin': '{login} avatar',
   'header.sourceControl.avatar': '{provider} avatar',
   'header.sourceControl.accountsTitle': '{provider} Accounts',
-  'header.sessionTabs.tabMenuAria': 'Session tab actions',
   'header.sessionTabs.closeTab': 'Close tab',
   'header.sessionTabs.closeOtherTabs': 'Close other tabs',
   'sessions.switcher.empty': 'No recent sessions',

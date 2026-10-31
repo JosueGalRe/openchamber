@@ -522,7 +522,6 @@ export const dict = {
   'header.sourceControl.avatarWithLogin': 'Avatar {login}',
   'header.sourceControl.avatar': 'Avatar {provider}',
   'header.sourceControl.accountsTitle': 'Comptes {provider}',
-  'header.sessionTabs.tabMenuAria': 'Actions de l\'onglet de session',
   'header.sessionTabs.closeTab': 'Fermer l\'onglet',
   'header.sessionTabs.closeOtherTabs': 'Fermer les autres onglets',
   'sessions.switcher.empty': 'Aucune session récente',

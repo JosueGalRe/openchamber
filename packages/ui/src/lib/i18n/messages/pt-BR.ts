@@ -692,7 +692,6 @@ export const dict: Record<I18nKey, string> = {
   "sessions.archivePage.restoreSessionAria": "Restaurar {title}",
   "sessions.switcher.openAria": "Abrir seletor de sessões",
   "header.sessionTabs.stripAria": "Sessões abertas",
-  "header.sessionTabs.tabMenuAria": "Ações da aba de sessão",
   "header.sessionTabs.closeTab": "Fechar aba",
   "header.sessionTabs.closeOtherTabs": "Fechar outras abas",
   "sessions.switcher.empty": "Nenhuma sessão recente",

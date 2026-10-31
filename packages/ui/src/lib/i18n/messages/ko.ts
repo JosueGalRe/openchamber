@@ -688,7 +688,6 @@ export const dict: Record<I18nKey, string> = {
   'header.sourceControl.avatarWithLogin': '{login} 아바타',
   'header.sourceControl.avatar': '{provider} 아바타',
   'header.sourceControl.accountsTitle': '{provider} 계정',
-  'header.sessionTabs.tabMenuAria': '세션 탭 작업',
   'header.sessionTabs.closeTab': '탭 닫기',
   'header.sessionTabs.closeOtherTabs': '다른 탭 닫기',
   'sessions.switcher.empty': '최근 세션 없음',

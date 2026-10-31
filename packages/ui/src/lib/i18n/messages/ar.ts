@@ -637,7 +637,6 @@ export const dict = {
   'header.sourceControl.avatarWithLogin': 'الصورة الرمزية لـ {login}',
   'header.sourceControl.avatar': 'الصورة الرمزية في {provider}',
   'header.sourceControl.accountsTitle': 'حسابات {provider}',
-  'header.sessionTabs.tabMenuAria': 'إجراءات علامة تبويب الجلسة',
   'header.sessionTabs.closeTab': 'إغلاق علامة التبويب',
   'header.sessionTabs.closeOtherTabs': 'إغلاق علامات التبويب الأخرى',
   'sessions.switcher.empty': 'لا توجد جلسات حديثة',

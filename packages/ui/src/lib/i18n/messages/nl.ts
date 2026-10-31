@@ -682,7 +682,6 @@ export const dict = {
   'sessions.archivePage.restoreSessionAria': '{title} herstellen',
   'sessions.switcher.openAria': 'Sessiewisselaar openen',
   'header.sessionTabs.stripAria': 'Sessies openen',
-  'header.sessionTabs.tabMenuAria': 'Acties voor sessietab',
   'header.sessionTabs.closeTab': 'Tabblad sluiten',
   'header.sessionTabs.closeOtherTabs': 'Andere tabbladen sluiten',
   'sessions.switcher.empty': 'Geen recente sessies',

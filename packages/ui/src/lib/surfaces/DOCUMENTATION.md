@@ -256,11 +256,9 @@ chat/palette go through the `openContext*` actions in `useUIStore`.
   Surfaces rendered by the zone (git, the Tracker, notes, context) remount on
   every switch, the Tracker on every switch between its tabs too. These
   surfaces must restore their state from stores or snapshots.
-- Portalled menus and dialogs handle their own Escape key. The panel's capture
-  handler ignores their events so dismissing an overlay does not close the panel.
-  Escape closes the zone it was pressed in: the frame and each keep-alive pane
-  run the same handler (`zoneEscape.ts`), since a pane's React events do not
-  pass through its frame.
+- Escape never closes a zone. It belongs to what has focus inside (a menu, a
+  field, the editor, the terminal), and a stray press while dismissing one of
+  those used to take the whole panel with it.
 - Runtime scope: desktop/web `MainLayout` only. VS Code and the dedicated
   mobile shell have their own layouts and do not consume this registry.
   Trackers have no rail surface: their items list on the issues and PRs board

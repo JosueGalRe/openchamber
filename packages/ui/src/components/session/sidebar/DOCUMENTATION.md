@@ -361,9 +361,13 @@ the task title (the branch description,
 `WorktreeMetadata.title`; a worktree made for a pull request or an issue
 starts with that item's title, the agent's until replaced), until it has one
 the branch (see Task titles below for the branch-first option); the tooltip
-always names the branch. At the end sits the PR or the issue its sessions follow as a mark in its state's
-colour without its number (one line has no room for it; the mark's tooltip names it and a click
-opens it). It shows no date and no session
+always names the branch. A worktree's PR shows only as its branch mark's
+tint, with the PR in the row's tooltip, whose link opens it: a PR mark at the
+end repeated the same colour (maintainer decision 2026-10-31). A space's mark
+takes no tint, so a space keeps the PR mark at the end. Without a PR the end
+holds the issue its sessions follow, as a mark in its state's colour without
+its number (one line has no room for it; the mark's tooltip names it and a
+click opens it). It shows no date and no session
 count, like the rows around it: the room goes to the title. Every icon before a one-line title
 moves the hover mask in by its width (`--oc-actions-inset`), or the title's
 tail shows through the hover actions. A click opens the latest

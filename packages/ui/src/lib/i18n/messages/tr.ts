@@ -3533,7 +3533,6 @@ export const dict = {
   'chat.message.context.prCheck': 'Başarısız GitHub PR check\'i ({label})',
   'chat.message.context.mrCheck': 'Başarısız GitLab pipeline işi ({label})',
   'header.sessionTabs.stripAria': 'Açık session\'lar',
-  'header.sessionTabs.tabMenuAria': 'Session sekmesi eylemleri',
   'header.sessionTabs.closeTab': 'Sekmeyi kapat',
   'header.sessionTabs.closeOtherTabs': 'Diğer sekmeleri kapat',
   'contextRail.configure.open': 'Panelleri yapılandır',

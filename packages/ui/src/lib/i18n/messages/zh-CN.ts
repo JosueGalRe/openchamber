@@ -688,7 +688,6 @@ export const dict: Record<I18nKey, string> = {
   'header.sourceControl.avatarWithLogin': '{login} 头像',
   'header.sourceControl.avatar': '{provider} 头像',
   'header.sourceControl.accountsTitle': '{provider} 账户',
-  'header.sessionTabs.tabMenuAria': '会话标签页操作',
   'header.sessionTabs.closeTab': '关闭标签页',
   'header.sessionTabs.closeOtherTabs': '关闭其他标签页',
   'sessions.switcher.empty': '没有最近会话',

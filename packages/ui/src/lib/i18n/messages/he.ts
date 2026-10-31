@@ -637,7 +637,6 @@ export const dict = {
   'header.sourceControl.avatarWithLogin': 'תמונת הפרופיל של {login}',
   'header.sourceControl.avatar': 'תמונת פרופיל ב-{provider}',
   'header.sourceControl.accountsTitle': 'חשבונות {provider}',
-  'header.sessionTabs.tabMenuAria': 'פעולות לכרטיסיית ההפעלה',
   'header.sessionTabs.closeTab': 'סגור כרטיסייה',
   'header.sessionTabs.closeOtherTabs': 'סגור כרטיסיות אחרות',
   'sessions.switcher.empty': 'אין הפעלות אחרונות',

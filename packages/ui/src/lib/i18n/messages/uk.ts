@@ -692,7 +692,6 @@ export const dict: Record<I18nKey, string> = {
   "sessions.archivePage.restoreSessionAria": "Відновити {title}",
   "sessions.switcher.openAria": "Відкрити перемикач сесій",
   "header.sessionTabs.stripAria": "Відкриті сесії",
-  "header.sessionTabs.tabMenuAria": "Дії вкладки сесії",
   "header.sessionTabs.closeTab": "Закрити вкладку",
   "header.sessionTabs.closeOtherTabs": "Закрити інші вкладки",
   "sessions.switcher.empty": "Немає недавніх сесій",
