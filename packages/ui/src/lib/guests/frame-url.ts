@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-import { mintGuestFrameUrlAuthToken } from '@/lib/runtime-auth';
+import { isCapacitorApp } from '@/lib/platform';
+import { getRuntimeExtraHeadersSync, mintGuestFrameUrlAuthToken } from '@/lib/runtime-auth';
 import { getRuntimeUrlResolver } from '@/lib/runtime-url';
 import { getRuntimeKey } from '@/lib/runtime-switch';
 import { getActiveRelayTunnel } from '@/lib/relay/runtime-tunnel';
@@ -16,8 +17,10 @@ import { loadRelayGuestDocument } from './relay-document';
  * that predates grants gets the short-lived guest-scoped query token instead.
  * Relay frames fetch their HTML and static resources over authenticated
  * runtime HTTP and use srcDoc; browser-owned iframe requests cannot travel
- * through the JS tunnel client. No representation contains the runtime's
- * bearer credential.
+ * through the JS tunnel client. The native mobile app does the same when its
+ * connection carries custom headers: a proxy in front of the server may
+ * require them, and an iframe navigation cannot send them. No representation
+ * contains the runtime's bearer credential.
  */
 export type GuestFrameUrl =
   | { kind: 'url'; url: string; expiresAt: number }
@@ -119,7 +122,8 @@ export const resolveGuestFrameUrl = async (
 ): Promise<GuestFrameUrl> => {
   const runtimeKey = getRuntimeKey();
   const relay = getActiveRelayTunnel();
-  if (relay) {
+  const needsProxyHeaders = isCapacitorApp() && Object.keys(getRuntimeExtraHeadersSync()).length > 0;
+  if (relay || needsProxyHeaders) {
     const kept = documentKey ? relayDocuments.get(documentKey) : undefined;
     if (kept) return { kind: 'document', html: kept };
     const read = async (readSignal?: AbortSignal): Promise<string> => {

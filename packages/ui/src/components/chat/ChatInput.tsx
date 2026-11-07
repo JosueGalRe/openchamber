@@ -132,17 +132,17 @@ import { useTrackerSources } from '@/lib/trackers/sources';
 import { trackerReferenceSource, type TrackerReferenceSource } from '@/components/references/referencePickerItems';
 import type { ComposerTrackerPicker } from './composer/ui/ComposerAttachmentControls';
 import { Icon } from "@/components/icon/Icon";
+import { GuestIcon } from "@/components/layout/GuestRailIcon";
 import { DraftPresetChips } from './DraftPresetChips';
 import type { ResolvedStarter } from './useDraftStarters';
 import { useChatSearchDirectory } from '@/hooks/useChatSearchDirectory';
 import { useGuestAttachItems, useGuestCommands } from '@/hooks/useGuestSurfaces';
-import { useGuestDialogStore } from '@/lib/guests/dialog-store';
+import { openGuestPanel, useGuestDialogStore } from '@/lib/guests/dialog-store';
 import { useGuestItemStore } from '@/lib/guests/item-store';
 import { runGuestCommand } from '@/lib/guests/run-command';
 import { useGuestsStore } from '@/lib/guests/store';
 import { isGuestActive } from '@/lib/guests/capabilities';
 import { routeGuestSlashCommand } from './composer/submit/guestCommands';
-import { pluginModeFromId } from '@/lib/surfaces/modes';
 import { AgentUnavailableError, opencodeClient, type SkillMentions } from '@/lib/opencode/client';
 import { isLocationNotFoundError } from '@/lib/opencode/location-errors';
 import { buildSkillMentionInstruction } from '@/lib/skillMentionInstruction';
@@ -4269,7 +4269,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
             setAttachDialogGuestId(guestId);
             return;
         }
-        useUIStore.getState().openContextSurface(currentDirectory || '', pluginModeFromId(guestId));
+        openGuestPanel(guestId, currentDirectory);
     }, [currentDirectory, guestAttachItems]);
     // Clicking the guest chip reopens that guest with the chip as `ready.item`,
     // so it can show the item's details instead of its whole list. A panel
@@ -4309,7 +4309,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
         // (panel mode, no attach declared) opens the rail with the item.
         if (guest?.mode !== 'dialog') {
             useGuestItemStore.getState().setPendingItem(issue.providerId, issue);
-            useUIStore.getState().openContextSurface(currentDirectory || '', pluginModeFromId(issue.providerId));
+            openGuestPanel(issue.providerId, currentDirectory);
             return;
         }
         setAttachDialogItem(issue);
@@ -5407,7 +5407,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                 onConfirm={attachReferences}
             />
         ) : null}
-        {attachDialogGuestId && !isMobile ? (
+        {attachDialogGuestId ? (
             <React.Suspense fallback={null}>
                 <GuestAttachDialog
                     guestId={attachDialogGuestId}
@@ -5489,6 +5489,19 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                         }}
                     >
                         {picker.label}
+                    </MobileSheetRow>
+                ))}
+                {guestAttachItems.map((guest) => (
+                    <MobileSheetRow
+                        key={guest.id}
+                        leading={<GuestIcon icon={guest.icon} iconSrc={guest.iconSrc} className="size-4 flex-shrink-0 text-muted-foreground" />}
+                        onClick={() => {
+                            mobileShell.skipNextOverlayCloseRestore();
+                            setMobileAttachMenuOpen(false);
+                            requestAnimationFrame(() => openGuestAttach(guest.id));
+                        }}
+                    >
+                        {guest.name}
                     </MobileSheetRow>
                 ))}
             </MobileOverlayPanel>

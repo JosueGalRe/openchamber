@@ -51,3 +51,16 @@ export const getClientPlatform = (): ClientPlatform => {
   if (isDesktopShell()) return 'desktop';
   return 'web';
 };
+
+/**
+ * Removing a focused editable mid-IME-composition wedges Android WebView's
+ * input dispatch (the whole app stops responding to touch). Blur it while it
+ * is still in the document and hide the soft keyboard explicitly on Android.
+ */
+export const releaseSoftKeyboardFocus = (field: HTMLElement): void => {
+  field.blur();
+  if (getClientPlatform() !== 'android') return;
+  void import('@capacitor/keyboard')
+    .then(({ Keyboard }) => Keyboard.hide())
+    .catch(() => undefined);
+};

@@ -79,8 +79,12 @@ import { ArchiveSessionsView } from '@/components/views/ArchiveView';
 import { MobileSourceBoard } from '@/components/sourceBoard/SourceBoardView';
 import { OverviewPage } from '@/components/overview/OverviewView';
 import { ScheduledTasksView, type ScheduledTasksLeaveReason } from '@/components/session/ScheduledTasksDialog';
-import { MobileWorkspaceDrawer } from './MobileWorkspaceDrawer';
-import { shownMobileWorkspaceTabs, type MobileWorkspaceTab } from '@/lib/mobileWorkspaceTabs';
+import { MobileWorkspaceDrawer, type MobileDrawerTab } from './MobileWorkspaceDrawer';
+import { shownMobileWorkspaceTabs } from '@/lib/mobileWorkspaceTabs';
+import { GuestHosts } from '@/components/layout/GuestHosts';
+import { useGuestCatalogSync } from '@/hooks/useGuestCatalogSync';
+import { useMobileGuestPanelStore } from '@/lib/guests/dialog-store';
+import { isPluginContextPanelMode, pluginModeFromId } from '@/lib/surfaces/modes';
 import { DedicatedMobileAppProvider, type MobileAppActions } from './mobileAppContext';
 import { autoConnectLastInstance, getAutoConnectTargetLabel, logMobileConnectEvent, reprobeActiveConnection, suppressAutoConnectUntilManualConnect, type AutoConnectOutcome } from './mobileConnections';
 import { isCapacitorMobileApp, useNativeAndroidBackButton, useNativeMobileChrome, useNativeMobileLifecycle } from './mobileNativeChrome';
@@ -145,6 +149,8 @@ const MobileShell: React.FC<{ onActiveConnectionDeleted: () => void }> = ({ onAc
   // keepalive: without it, background PTYs (running project actions included)
   // are idle-reaped by the server while the workspace drawer is closed.
   useTerminalSessionKeepalive();
+  // Extensions run here too; a pause, removal or revoked capability elsewhere must reach them.
+  useGuestCatalogSync();
   const [sessionsSheetOpen, setSessionsSheetOpen] = React.useState(false);
   // The run overview covers the chat; selecting any session returns to it.
   React.useEffect(() => useSessionUIStore.subscribe((state, prev) => {
@@ -160,7 +166,7 @@ const MobileShell: React.FC<{ onActiveConnectionDeleted: () => void }> = ({ onAc
   // Phone right drawer with the workspace tabs; the tab persists across
   // open/close so the right-edge swipe reopens where the user left off.
   const [workspaceOpen, setWorkspaceOpen] = React.useState(false);
-  const [workspaceTab, setWorkspaceTab] = React.useState<MobileWorkspaceTab>(() => {
+  const [workspaceTab, setWorkspaceTab] = React.useState<MobileDrawerTab>(() => {
     const { mobileWorkspaceTabOrder, mobileWorkspaceHiddenTabs } = useUIStore.getState();
     return shownMobileWorkspaceTabs(mobileWorkspaceTabOrder, mobileWorkspaceHiddenTabs)[0];
   });
@@ -170,9 +176,15 @@ const MobileShell: React.FC<{ onActiveConnectionDeleted: () => void }> = ({ onAc
   const openWorkspace = React.useCallback(() => {
     const { mobileWorkspaceTabOrder, mobileWorkspaceHiddenTabs } = useUIStore.getState();
     const shown = shownMobileWorkspaceTabs(mobileWorkspaceTabOrder, mobileWorkspaceHiddenTabs);
-    setWorkspaceTab((current) => (shown.includes(current) ? current : shown[0]));
+    setWorkspaceTab((current) => (isPluginContextPanelMode(current) || shown.includes(current) ? current : shown[0]));
     setWorkspaceOpen(true);
   }, []);
+  // An extension asked to show its panel (a composer chip, a message action): its drawer tab.
+  React.useEffect(() => useMobileGuestPanelStore.subscribe(({ request }) => {
+    if (!request) return;
+    setWorkspaceTab(pluginModeFromId(request.guestId));
+    setWorkspaceOpen(true);
+  }), []);
   // A plan opened from the workspace drawer's Notes tab, shown as a fullscreen
   // layer on top of it (back returns to the notes).
   const [openPlan, setOpenPlan] = React.useState<{ id: string; title: string; projectRef: ProjectRef } | null>(null);
@@ -819,6 +831,8 @@ const MobileShell: React.FC<{ onActiveConnectionDeleted: () => void }> = ({ onAc
             </ErrorBoundary>
           </MobileFullscreenSurface>
         ) : null}
+
+        <ErrorBoundary><GuestHosts /></ErrorBoundary>
       </div>
     </DedicatedMobileAppProvider>
   );

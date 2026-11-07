@@ -11,6 +11,7 @@ import type { TerminalTheme } from '@/lib/terminalTheme';
 import { toGhosttyTheme } from '@/lib/terminalTheme';
 import { openExternalUrl } from '@/lib/url';
 import { useI18n } from '@/lib/i18n';
+import { releaseSoftKeyboardFocus } from '@/lib/platform';
 import type { TerminalChunk } from '@/stores/useTerminalStore';
 
 import { selectTerminalChunkReplay } from './terminalChunkReplay';
@@ -269,21 +270,9 @@ const TerminalViewport = React.forwardRef<TerminalController, Props>(({
 
     return () => {
       disposed = true;
-      // Removing a focused editable mid-IME-composition wedges Android
-      // WebView's input dispatch (the whole app stops responding to touch).
-      // Blur first so the IME detaches cleanly, and hide the soft keyboard
-      // explicitly on Android before the terminal DOM is torn down.
+      // Before the terminal DOM is torn down, so the IME detaches cleanly.
       const active = document.activeElement;
-      if (active instanceof HTMLElement && container.contains(active)) {
-        active.blur();
-        // SAFETY: the Capacitor bridge installs window.Capacitor with getPlatform() on native shells only.
-        const capacitor = (window as typeof window & { Capacitor?: { getPlatform?: () => string } }).Capacitor;
-        if (capacitor?.getPlatform?.() === 'android') {
-          void import('@capacitor/keyboard')
-            .then(({ Keyboard }) => Keyboard.hide())
-            .catch(() => undefined);
-        }
-      }
+      if (active instanceof HTMLElement && container.contains(active)) releaseSoftKeyboardFocus(active);
       surface?.dispose();
       surface = null;
       surfaceRef.current = null;

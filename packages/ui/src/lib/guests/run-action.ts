@@ -4,7 +4,6 @@ import { create } from 'zustand';
 
 import type { I18nKey, I18nParams } from '@/lib/i18n';
 import { isVSCodeRuntime } from '@/lib/desktop';
-import { isMobileSurfaceRuntime } from '@/lib/runtimeSurface';
 import { getActiveRelayTunnel } from '@/lib/relay/runtime-tunnel';
 import { getRuntimeKey, subscribeRuntimeEndpointChanged } from '@/lib/runtime-switch';
 import { generateUuid } from '@/lib/uuid';
@@ -30,7 +29,7 @@ export const useGuestActionHostStore = create<{ requests: GuestBackgroundAction[
 
 const isCurrentAction = (entry: GuestActionEntry, item: GuestActionItem, runtimeKey: string): boolean => {
   const catalog = useGuestsStore.getState();
-  if (isVSCodeRuntime() || isMobileSurfaceRuntime() || getRuntimeKey() !== runtimeKey || catalog.runtimeKey !== runtimeKey) return false;
+  if (isVSCodeRuntime() || getRuntimeKey() !== runtimeKey || catalog.runtimeKey !== runtimeKey) return false;
   const guest = catalog.guests.find((candidate) => candidate.id === entry.guest.id);
   if (!guest || (!guest.entry && !guest.backgroundEntry) || !isGuestActive(guest)
     || guest.version !== entry.guest.version || guest.revision !== entry.guest.revision || guest.entry !== entry.guest.entry || guest.backgroundEntry !== entry.guest.backgroundEntry) return false;
